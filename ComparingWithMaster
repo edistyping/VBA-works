@@ -11,10 +11,10 @@ Set objExcel2 = CreateObject("Excel.Application")
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\full.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest0.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Datetime of Log Creation: " & Now() & vbCrLf
-logFile.Write "-------------------------------------------------------------" & vbCrLf
+logFile.Write "Datetime of Log Creation: " & Now() & vbCrLf & _
+              "-------------------------------------------------------------" & vbCrLf
 
 ' path to the excel file
 Set objWorkbook = objExcel.Workbooks.Open _
@@ -64,7 +64,6 @@ For Each sh In objWorkbook2.Worksheets
     testShName = ""
     testRowName = ""
 
-
     ' In each worksheet in MASTER, check each row for the matching record
     For Each rw In sh.Rows
     
@@ -105,15 +104,12 @@ For Each sh In objWorkbook2.Worksheets
             ' Below checks if a correct record is found in MASTER. If so, log this good too
             If keepSearching = False Then dataFound = True
             If dataFound = True Then
-                logFile.Write "     wtfwtf Found at: " & sh.Name & " | " & rw.Row & ".... logFlags(" & logFlags1(5) & "): " & email_bcc & " | " & email_bcc2 & vbCrLf
-
                 testShName = CStr(sh.Name)
                 testRowName = CStr(rw.Row)
                 intSuccess = intSuccess + 1
                 Exit For
             End If
             
-            logFile.Write vbCrLf
         Else
             logFlags1(0) = "1"
             logFlags1(1) = "1"
@@ -135,41 +131,46 @@ NextIteration:
     End If
     
 Next sh
-intRow = intRow + 1
 
 
 If logFlags1(0) = "1" And logFlags1(1) = "1" Then
     ' Output to Log
-    logFile.Write "Flags: #" & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
-    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
-    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
-    logFile.Write "     dataFound: " & dataFound & vbCrLf
-    logFile.Write "     Fail!!!: " & file_left & "   =    " & file_left2 & vbCrLf
-    
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & " | " & file_left & vbCrLf & _
+                  "     Status: Not Found!" & vbCrLf & _
+                  "         Error: Looks like there wasn't a matching record in Master Excel file... Please check again!" & vbCrLf & _
+                  "     FAIL" & vbCrLf
+
+'    logFile.Write "Flags: #" & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
+'    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
+'    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
+'    logFile.Write "     dataFound: " & dataFound & vbCrLf
+'    logFile.Write "     Fail!!!: " & file_left & "   =    " & file_left2 & vbCrLf
+        
+    ' Additional details if applicable
     If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
     If logFlags1(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
     If logFlags1(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
     If logFlags1(5) = "1" Then logFile.Write "      File Fullname is not matching!" & vbCrLf
+
 Else
     ' Output to Log
-    logFile.Write "Flags: " & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
-    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
-    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
-    logFile.Write "     dataFound: " & dataFound & vbCrLf
-
-
-    'logFile.Write "---> Output logging for " & file_fullname & "  - " & send_to & "~!" & vbCrLf
-    logFile.Write "     Success!!!" & vbCrLf
-    logFile.Write "        send_to: " & send_to & "|" & send_to2 & vbCrLf
-    logFile.Write "        file_left: " & file_left & "|" & file_left2 & vbCrLf
-    logFile.Write "        email_cc: " & email_cc & "|" & email_cc2 & vbCrLf
-    logFile.Write "        email_bcc: " & email_bcc & "|" & email_bcc2 & vbCrLf
-
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & " | " & file_left & vbCrLf & _
+                  "     Status: Found! " & vbCrLf & _
+                  "     Sheet: " & sh.Name & "  Row: " & rw.Row & vbCrLf & _
+                  "        Detail below: " & vbCrLf & _
+                  "        send_to: " & send_to & vbCrLf & _
+                  "        file_left: " & file_left & vbCrLf & _
+                  "        email_cc: " & email_cc & vbCrLf & _
+                  "        email_bcc: " & email_bcc & vbCrLf & _
+                  "        file_date: " & file_date & vbCrLf & _
+                  "     SUCCESS!" & vbCrLf
 End If
 
-logFile.Write vbCrLf & vbCrLf
+
 
 ' End of Loop!
+logFile.Write vbCrLf
+intRow = intRow + 1
 Loop
 
 ' Output the Success/Failure Rate to Log File
@@ -189,5 +190,3 @@ objWorkbook2.Close
 objExcel2.Quit
 
 End Sub
-
-
