@@ -50,67 +50,75 @@ email_bcc = Trim(objExcel.Cells(intRow, 4).Value)
 file_fullname = Trim(objExcel.Cells(intRow, 9).Value)
 
 
-
 Dim dataFound As Boolean
 dataFound = False
 Dim logFlags As String
+Dim logFlags1(5) As String
 
 ' loop against the MASTER file
 '''''''''''''' ISSUEEEEEEEEEE: Only gets call for first outer loop
 For Each sh In objWorkbook2.Worksheets
-    
     If sh.Index = 1 Then GoTo NextIteration
 
-    logFlags = "000000" ' 1 send_to, 1 file_date, 1 file_left, 3 emails
+    ' test here
+    testShName = ""
+    testRowName = ""
 
 
+    ' In each worksheet in MASTER, check each row for the matching record
     For Each rw In sh.Rows
+    
+        logFlags1(0) = "0"
+        logFlags1(1) = "0"
+        logFlags1(2) = "0"
+        logFlags1(3) = "0"
+        logFlags1(4) = "0"
+        logFlags1(5) = "0"
+        
         Dim keepSearching As Boolean
         keepSearching = False
                 
         ' Check further comparison if send_to data matches
         If send_to = rw.Cells(1).Value Then
             
-            ' Since we confirmd send_to matches, set logFlags to '10000'
-            
             
             ' Fetch the data to compare it with Master later
-            file_date2 = rw.Cells(10).Value
+            send_to2 = rw.Cells(1).Value
             file_left2 = rw.Cells(14).Value
+            file_date2 = rw.Cells(10).Value
             email_to2 = rw.Cells(2).Value
             email_cc2 = rw.Cells(3).Value
             email_bcc2 = rw.Cells(4).Value
             
-            logFile.Write "Processing " & send_to & " - " & file_fullname & "    " & sh.Name & "  (" & rw.Row & ")  " & vbCrLf
-
             ' Below checks for any failure/unmatched. If so, log this bad boys
-            If file_date <> file_date2 Then
+            logFlags1(0) = "0" ' Initialize to 0 since we know send_to equals send_to2
+            If file_left <> file_left2 Then
                 keepSearching = True
-                logFile.Write "   File date is not matching..." & vbCrLf
+                logFlags1(1) = "1"
             End If
-            If file_left <> file_left2 Then keepSearching = True: logFile.Write "   File prefix name is not matching..." & vbCrLf
-            If email_to <> email_to2 Then keepSearching = True: logFile.Write "   Email Receipient is not matching..." & vbCrLf
-            If email_cc <> email_cc2 Then keepSearching = True: logFile.Write "   CC info is not matching..." & vbCrLf
-            If email_bcc <> email_bcc2 Then keepSearching = True: logFile.Write "   BCC info is not matching..." & vbCrLf
+            If file_date <> file_date2 Then keepSearching = True: logFlags1(2) = "1"
+            If email_to <> email_to2 Then keepSearching = True: logFlags1(3) = "1"
+            If email_cc <> email_cc2 Then keepSearching = True: logFlags1(4) = "1"
+            If email_bcc <> email_bcc2 Then keepSearching = True: logFlags1(5) = "1" ': logFile.Write "           Shit: " & sh.Name & "   Row:" & rw.Row & ": " & email_bcc & " || " & email_bcc2
 
-            
             
             ' Below checks if a correct record is found in MASTER. If so, log this good too
             If keepSearching = False Then dataFound = True
             If dataFound = True Then
-                logFile.Write "Success! " & file_fullname & " in " & sh.Name & vbCrLf & _
-                    " Found in " & sh.Name & " sheet in Row " & CStr(rw.Row) & vbCrLf & _
-                    "   Send To: " & send_to & vbCrLf & _
-                    "   Email To: " & email_to & vbCrLf & _
-                    "   Email BCC: " & email_bcc & vbCrLf & _
-                    "   File Left: " & file_left & vbCrLf & vbCrLf
+                logFile.Write "     wtfwtf Found at: " & sh.Name & " | " & rw.Row & ".... logFlags(" & logFlags1(5) & "): " & email_bcc & " | " & email_bcc2 & vbCrLf
+
+                testShName = CStr(sh.Name)
+                testRowName = CStr(rw.Row)
                 intSuccess = intSuccess + 1
                 Exit For
             End If
             
             logFile.Write vbCrLf
-            
+        Else
+            logFlags1(0) = "1"
+            logFlags1(1) = "1"
         End If
+        
         
         If rw.Row >= 200 Then
             '''''MsgBox "200 reached" + CStr(goNextSheet) + "  " + CStr(dataFound)
@@ -122,15 +130,54 @@ For Each sh In objWorkbook2.Worksheets
 NextIteration:
     ' If the matching record is found in MASTER, then we just move to next item in ITEMin file.
     If dataFound = True Then
+        dataFound = False
         Exit For
     End If
+    
 Next sh
-
 intRow = intRow + 1
+
+
+If logFlags1(0) = "1" And logFlags1(1) = "1" Then
+    ' Output to Log
+    logFile.Write "Flags: #" & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
+    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
+    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
+    logFile.Write "     dataFound: " & dataFound & vbCrLf
+    logFile.Write "     Fail!!!: " & file_left & "   =    " & file_left2 & vbCrLf
+    
+    If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
+    If logFlags1(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
+    If logFlags1(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
+    If logFlags1(5) = "1" Then logFile.Write "      File Fullname is not matching!" & vbCrLf
+Else
+    ' Output to Log
+    logFile.Write "Flags: " & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
+    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
+    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
+    logFile.Write "     dataFound: " & dataFound & vbCrLf
+
+
+    'logFile.Write "---> Output logging for " & file_fullname & "  - " & send_to & "~!" & vbCrLf
+    logFile.Write "     Success!!!" & vbCrLf
+    logFile.Write "        send_to: " & send_to & "|" & send_to2 & vbCrLf
+    logFile.Write "        file_left: " & file_left & "|" & file_left2 & vbCrLf
+    logFile.Write "        email_cc: " & email_cc & "|" & email_cc2 & vbCrLf
+    logFile.Write "        email_bcc: " & email_bcc & "|" & email_bcc2 & vbCrLf
+
+End If
+
+logFile.Write vbCrLf & vbCrLf
+
+' End of Loop!
 Loop
 
+' Output the Success/Failure Rate to Log File
+logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
+       "Success: " & CStr(intSuccess) & vbCrLf & _
+       "Failure: " & CStr(intRow - 2 - intSuccess)
 
-' We subtract 2 because intRow is initally 2
+' Output the Success/Failure Rate as a Pop-up message
 MsgBox "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess)
@@ -142,36 +189,5 @@ objWorkbook2.Close
 objExcel2.Quit
 
 End Sub
-
-
-' This one simply update the MS Word file
-Function updateDateWord(fDegrees)
-    ' I will need following 3:
-        ' Applicable Word file Location and Name
-        ' Updated date from ITEMin file
-    
-' Open the ITEMin Excel file to fetch the updated Date
-Set objExcel = CreateObject("Excel.Application")
-Set objWorkbook = objExcel.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
-
-new_file_date = Trim(objExcel.Cells(intRow, 10).Value)
-customerdata_form = Trim(objExcel.Cells(intRow, 24).Value)
-
-
-new_formname = customerdata_form + new_file_date
-
-'Below is the location/file_left of the file to be updated
-'J:\Sales\Public\Catalog Tools\frank\Customer Data Files\Brake Booster\WHI\Data\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_
-
-
-
-' Open the applicable Word document
-Dim wdApp As Object, wdDoc As Object
-Set wdApp = CreateObject("word.application")
-Set wdDoc = wdApp.Documents.Open()
-wdDoc.Visible = True
-
-End Function
 
 
