@@ -1,0 +1,123 @@
+Sub fuckfuckfuckfuck()
+
+' This file is used to compare MASTER vs ITEMin
+    ' Left Blank, File Date, Email Receipients
+' Log out the differences
+' Ex: Wrong file name, missing data in a column(s).
+
+' create system objects for file handling
+Set WShell = CreateObject("WScript.Shell")
+Set objExcel = CreateObject("Excel.Application")
+Set objExcel2 = CreateObject("Excel.Application")
+
+' path to the excel file
+Set objWorkbook = objExcel.Workbooks.Open _
+("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+
+Set objWorkbook2 = objExcel2.Workbooks.Open _
+("C:\Users\ekim\Desktop\Projects\hello\MASTER000.xlsx")
+
+' path to full output log file
+logFile = "C:\Users\ekim\Desktop\Projects\hello\full.log"
+
+
+' start at the second row, ie, not the column header
+intRow = 2
+
+' loop through each row of the excel file
+Do Until objExcel.Cells(intRow, 1).Value = ""
+    
+' grab the rest of the excel file information
+' If the first cell is blank exit the program (SHM)
+client = Trim(objExcel.Cells(intRow, 1).Value)
+If client = "" Then
+    ''''exit do
+End If
+
+' Fetch the data to compare it with Master later
+file_date = Trim(objExcel.Cells(intRow, 10).Value)
+file_left = Trim(objExcel.Cells(intRow, 14).Value)
+send_to = Trim(objExcel.Cells(intRow, 1).Value)
+email_to = Trim(objExcel.Cells(intRow, 2).Value)
+email_cc = Trim(objExcel.Cells(intRow, 3).Value)
+email_bcc = Trim(objExcel.Cells(intRow, 4).Value)
+
+
+' loop against the MASTER file
+'''''''''''''' ISSUEEEEEEEEEE: Only gets call for first outer loop
+For Each sh In objWorkbook2.Worksheets
+    If sh.Index = 1 Then GoTo NextIteration
+        
+    Dim dataFound As Boolean
+    dataFound = False
+        
+        
+    MsgBox "Searching: " + sh.Name
+    
+    For Each rw In sh.Rows
+        Dim keepSearching As Boolean
+        keepSearching = False
+        
+        If send_to = rw.Cells(1).Value Then
+            '''''MsgBox "Matching Found in Row " + CStr(rw.Cells(1).Row) + ": " + rw.Cells(1).Value
+            ' Check other data
+                    
+            ' Fetch the data to compare it with Master later
+            file_date2 = rw.Cells(10).Value
+            file_left2 = rw.Cells(14).Value
+            email_to2 = rw.Cells(2).Value
+            email_cc2 = rw.Cells(3).Value
+            email_bcc2 = rw.Cells(4).Value
+            
+            ' Although send_to is the same.... other information is unmatching @!#@!#@!$!$ LOGGG
+            If file_date <> file_date2 Then keepSearching = True '': MsgBox "File date is not matching..."
+            If file_left <> file_left2 Then keepSearching = True '': MsgBox "File prefix name is not matching..."
+            If email_to <> email_to2 Then keepSearching = True '': MsgBox "Email Receipient is not matching..."
+            If email_cc <> email_cc2 Then keepSearching = True '': MsgBox "CC info is not matching..."
+            If email_bcc <> email_bcc2 Then keepSearching = True '': MsgBox "BCC info is not matching..."
+            
+            ''''MsgBox "comparison done... keepSearching: " + CStr(keepSearching)
+            ' Unless these 5 are matching, continue to search in the next rows and spreadsheet
+            
+            If keepSearching = False Then dataFound = True
+            If dataFound = True Then
+                ' @#!@#@!#@!$!$@!$! LOGGGGGGGGGG THIS
+                MsgBox "FOUND " & file_left & " in " & sh.Name & vbCrLf & _
+                    "Send To: " & send_to2 & vbCrLf & _
+                    "Email To: " & email_to2 & vbCrLf & _
+                    "Email BCC: " & email_bcc2 & vbCrLf & _
+                    "File Left: " & file_left2 & vbCrLf & _
+                    "Row: " & rw.Row & " from " & sh.Name
+                Exit For
+            End If
+            
+        End If
+        
+        If rw.Row >= 200 Then
+            '''''MsgBox "200 reached" + CStr(goNextSheet) + "  " + CStr(dataFound)
+            Exit For ' Need a bool to stop completely or move to next worksheet
+        End If
+    Next rw
+    
+
+NextIteration:
+    If dataFound = True Then
+'        MsgBox "Data is found... Exiting the program; needs to switched for next row in DATAIn"
+        ' objWorkbook2.Worksheets(1).Activate ' I think we need to reset objWorkbook2 to point to its first sheet instead of last or whatever
+        Exit For
+    End If
+Next sh
+'End ' not sure what this End is for
+
+MsgBox "Checking: " & send_to
+
+intRow = intRow + 1
+Loop
+
+objWorkbook.Close
+objWorkbook2.Close
+objExcel.Quit
+objExcel2.Quit
+
+End Sub
+
