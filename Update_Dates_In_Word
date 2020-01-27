@@ -1,0 +1,48 @@
+Sub updateDateWord()
+
+' This one simply update dates in the MS Word title and also the file
+    ' I will need following 3:
+        ' Applicable Word file Location and Name
+        ' Updated date from ITEMin file
+    
+' Open the ITEMin Excel file to fetch the updated Date
+Set objExcel = CreateObject("Excel.Application")
+Set objWorkbook = objExcel.Workbooks.Open _
+("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+
+MsgBox "ok wtf"
+new_filedate = Trim(objExcel.Cells(2, 10).Value) ' I think we can just get from the first record
+customerdata_form = Trim(objExcel.Cells(2, 24).Value)
+
+
+new_formname = customerdata_form + new_file_date
+
+'Below is the location/file_left of the file to be updated
+'J:\Sales\Public\Catalog Tools\frank\Customer Data Files\Brake Booster\WHI\Data\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_
+
+
+
+' Open the applicable Word document
+Dim wdApp As Object, wdDoc As Object
+Set wdApp = CreateObject("word.application")
+wdApp.Documents.Open ("C:\Users\ekim\Desktop\Projects\hello\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_2020-01-14.docx")
+wdApp.Visible = True
+
+'Now all we have to do is find and replace any date value in DOC file with new_filedate
+    ' Don't forget to change the filename too to include new_filedate
+
+
+' #1 Found this below somewhere
+'Set aaa = ActiveDocument.Range(Start:=1, End:=1).Find    ' start at beginning of document
+'aaa.Text = "?" & Mid(MonthName(i), 2, 20) & "[ ^t]{1,5}([0-9]{1,2}),[ ^t]{1,5}([0-9]{4})"
+
+
+' #2[0-9]{1,2}[ ^s-/][0-9]{1,2}[ ^s-/][0-9]{2,4} ' i was told this find all dates in d/m/yyyy d m yyyy d-m-yyyy etc.
+' Refer to https://stackoverflow.com/questions/52017561/vba-word-locate-and-replace-date-in-text-document
+
+
+
+
+End Sub
+
+
