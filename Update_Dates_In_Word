@@ -7,48 +7,43 @@ Sub updateDateWord()
     
 ' Open the ITEMin Excel file to fetch the updated Date
 Set objExcel = CreateObject("Excel.Application")
-Set objWorkbook = objExcel.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
 
+Const MAIN_PATH As String = "C:\Users\ekim\Desktop\Projects\hello\Customer Data File\Test\"
 
 new_fileDate = Trim(objExcel.Cells(2, 10).Value) ' I think we can just get from the first record
-customerdata_form = Trim(objExcel.Cells(2, 24).Value)
+file_left = Trim(objExcel.Cells(2, 24).Value)
+new_fileName = file_left + new_fileDate + ".docx" ' This should be the new file name
 
-new_formName = customerdata_form + new_file_date
+'MsgBox "Just fyi: " & new_fileDate & vbCrLf & vbCrLf & _
+       "File Left: " & file_left & vbCrLf & vbCrLf & _
+       "New: " & new_fileName
 
-MsgBox "Just fyi: " & new_fileDate
+' Using substring of the title (file_left) to correctly locate the file from its directory
+Dim file As String
+Dim fileTemp As String
+'MsgBox "ha: " & MAIN_PATH & " ||| " & file_left & "!!!"
+file = Dir$(file_left & "*" & ".*")
+If (Len(file) > 0) Then
+    fileTemp = file
+    MsgBox "Found: " & fileTemp
+Else
+    MsgBox "File Doesn't Exist!"
+End If
 
-'Below is the location/file_left of the file to be updated
-'J:\Sales\Public\Catalog Tools\frank\Customer Data Files\Brake Booster\WHI\Data\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_
 
-
-
-' Open the applicable Word document
+' Open the Word document
 Dim wdApp As Object, wdDoc As Object
 Set wdApp = CreateObject("Word.Application")
-Set wdDoc = wdApp.Documents.Open("C:\Users\ekim\Desktop\Projects\hello\testbaby.docx")
+Set wdDoc = wdApp.Documents.Open(MAIN_PATH + fileTemp) '("C:\Users\ekim\Desktop\Projects\hello\testbaby.docx")
 wdApp.Visible = True
 
-
-' #1 Found this below somewhere
-'Set aaa = ActiveDocument.Range(Start:=1, End:=1).Find    ' start at beginning of document
-'aaa.Text = "?" & Mid(MonthName(i), 2, 20) & "[ ^t]{1,5}([0-9]{1,2}),[ ^t]{1,5}([0-9]{4})"
-
-
-' #2 [0-9]{1,2}[ ^s-/][0-9]{1,2}[ ^s-/][0-9]{2,4} ' i was told this find all dates in d/m/yyyy d m yyyy d-m-yyyy etc.
-' Refer to https://stackoverflow.com/questions/52017561/vba-word-locate-and-replace-date-in-text-document
-
-' Possible Solution! http://www.vbaexpress.com/forum/showthread.php?61816-Excel-exectuing-Word-VBA-Issue-with-Find-amp-Replace
-''Refer to the video on a short Tutorial: https://www.google.com/search?q=how+to+find+and+replace+all+dates+in+word+from+vba&rlz=1C1GCEU_enUS885US885&oq=how+to+find+and+replace+all+dates+in+word+from+vba+&aqs=chrome..69i57.5711j0j7&sourceid=chrome&ie=UTF-8#kpvalbx=_7GkvXuXEH-670PEPyoKmmAE21
 With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content instead of Range
     .ClearFormatting ' Clear any existing value for Find dialog box
     .Replacement.ClearFormatting ' Clear any existing value
-    
-    '!!!! Need to changefrom anything in YYYY-MM-DD to new_fileDate
-    .Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
-    '.Text = "####[-.]##[-.]##"
+    '.Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
+    .Text = "testbaby"
     .MatchWildcards = True
-    
     .Replacement.Text = new_fileDate ' Change .Text to what's provided here
     .Execute Replace:=2 ' Apply for Replace All
 End With
@@ -65,11 +60,12 @@ End With
 '3) Delete the old file with Kill oldfile
 
 
-wdApp.ActiveDocument.Close SaveChanges:=True
 
+
+' Close files
+'wdApp.ActiveDocument.Close SaveChanges:=True
 objWorkbook.Close
 objExcel.Quit
-
 
 End Sub
 
