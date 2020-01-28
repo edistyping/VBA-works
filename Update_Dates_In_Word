@@ -10,12 +10,13 @@ Set objExcel = CreateObject("Excel.Application")
 Set objWorkbook = objExcel.Workbooks.Open _
 ("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
 
-MsgBox "ok wtf"
-new_filedate = Trim(objExcel.Cells(2, 10).Value) ' I think we can just get from the first record
+
+new_fileDate = Trim(objExcel.Cells(2, 10).Value) ' I think we can just get from the first record
 customerdata_form = Trim(objExcel.Cells(2, 24).Value)
 
+new_formName = customerdata_form + new_file_date
 
-new_formname = customerdata_form + new_file_date
+MsgBox "Just fyi: " & new_fileDate
 
 'Below is the location/file_left of the file to be updated
 'J:\Sales\Public\Catalog Tools\frank\Customer Data Files\Brake Booster\WHI\Data\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_
@@ -24,12 +25,9 @@ new_formname = customerdata_form + new_file_date
 
 ' Open the applicable Word document
 Dim wdApp As Object, wdDoc As Object
-Set wdApp = CreateObject("word.application")
-wdApp.Documents.Open ("C:\Users\ekim\Desktop\Projects\hello\REMANUFACTURED POWER BRAKE BOOSTERS_RPB_WHI DSF-Motorcar Parts of America_Brake Boosters_2020-01-14.docx")
+Set wdApp = CreateObject("Word.Application")
+Set wdDoc = wdApp.Documents.Open("C:\Users\ekim\Desktop\Projects\hello\testbaby.docx")
 wdApp.Visible = True
-
-'Now all we have to do is find and replace any date value in DOC file with new_filedate
-    ' Don't forget to change the filename too to include new_filedate
 
 
 ' #1 Found this below somewhere
@@ -37,10 +35,40 @@ wdApp.Visible = True
 'aaa.Text = "?" & Mid(MonthName(i), 2, 20) & "[ ^t]{1,5}([0-9]{1,2}),[ ^t]{1,5}([0-9]{4})"
 
 
-' #2[0-9]{1,2}[ ^s-/][0-9]{1,2}[ ^s-/][0-9]{2,4} ' i was told this find all dates in d/m/yyyy d m yyyy d-m-yyyy etc.
+' #2 [0-9]{1,2}[ ^s-/][0-9]{1,2}[ ^s-/][0-9]{2,4} ' i was told this find all dates in d/m/yyyy d m yyyy d-m-yyyy etc.
 ' Refer to https://stackoverflow.com/questions/52017561/vba-word-locate-and-replace-date-in-text-document
 
+' Possible Solution! http://www.vbaexpress.com/forum/showthread.php?61816-Excel-exectuing-Word-VBA-Issue-with-Find-amp-Replace
+''Refer to the video on a short Tutorial: https://www.google.com/search?q=how+to+find+and+replace+all+dates+in+word+from+vba&rlz=1C1GCEU_enUS885US885&oq=how+to+find+and+replace+all+dates+in+word+from+vba+&aqs=chrome..69i57.5711j0j7&sourceid=chrome&ie=UTF-8#kpvalbx=_7GkvXuXEH-670PEPyoKmmAE21
+With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content instead of Range
+    .ClearFormatting ' Clear any existing value for Find dialog box
+    .Replacement.ClearFormatting ' Clear any existing value
+    
+    '!!!! Need to changefrom anything in YYYY-MM-DD to new_fileDate
+    .Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
+    '.Text = "####[-.]##[-.]##"
+    .MatchWildcards = True
+    
+    .Replacement.Text = new_fileDate ' Change .Text to what's provided here
+    .Execute Replace:=2 ' Apply for Replace All
+End With
+ 
 
+'!!!! After above, change the filename with the updated date
+'1) Store the full path of the document in a string: oldfile = ActiveDocument.FullName
+    ' Can either fetch the file using a substring in the directory (Column X; datafile_left)
+    ' Or grab the file using Master Excel file.
+
+'2) SaveAs the document with ActiveDocument.SaveAs
+
+
+'3) Delete the old file with Kill oldfile
+
+
+wdApp.ActiveDocument.Close SaveChanges:=True
+
+objWorkbook.Close
+objExcel.Quit
 
 
 End Sub
