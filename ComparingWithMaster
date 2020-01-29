@@ -9,6 +9,11 @@ Sub compareWithMaster()
 Set objExcel = CreateObject("Excel.Application")
 Set objExcel2 = CreateObject("Excel.Application")
 
+' FOr testing
+objExcel.Visible = True
+
+
+
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
 logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest0.log"
@@ -19,6 +24,7 @@ logFile.Write "Datetime of Log Creation: " & Now() & vbCrLf & _
 ' path to the excel file
 Set objWorkbook = objExcel.Workbooks.Open _
 ("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+
 
 Set objWorkbook2 = objExcel2.Workbooks.Open _
 ("C:\Users\ekim\Desktop\Projects\hello\MASTER000.xlsx")
@@ -49,11 +55,13 @@ email_cc = Trim(objExcel.Cells(intRow, 3).Value)
 email_bcc = Trim(objExcel.Cells(intRow, 4).Value)
 file_fullname = Trim(objExcel.Cells(intRow, 9).Value)
 
-
 Dim dataFound As Boolean
 dataFound = False
 Dim logFlags As String
 Dim logFlags1(5) As String
+
+' Reset for the next line
+dataFound = False
 
 ' loop against the MASTER file
 '''''''''''''' ISSUEEEEEEEEEE: Only gets call for first outer loop
@@ -126,7 +134,6 @@ For Each sh In objWorkbook2.Worksheets
 NextIteration:
     ' If the matching record is found in MASTER, then we just move to next item in ITEMin file.
     If dataFound = True Then
-        dataFound = False
         Exit For
     End If
     
@@ -140,13 +147,7 @@ If logFlags1(0) = "1" And logFlags1(1) = "1" Then
                   "         Error: Looks like there wasn't a matching record in Master Excel file... Please check again!" & vbCrLf & _
                   "     FAIL" & vbCrLf
 
-'    logFile.Write "Flags: #" & logFlags1(0) & logFlags1(1) & logFlags1(2) & logFlags1(3) & logFlags1(4) & logFlags1(5) & "   " & send_to & "|" & file_left & vbCrLf
-'    logFile.Write "     #" & send_to & " = " & send_to2 & vbCrLf & "     " & file_left & " = " & file_left2 & vbCrLf
-'    logFile.Write "     #" & testShName & " | " & testRowName & vbCrLf
-'    logFile.Write "     dataFound: " & dataFound & vbCrLf
-'    logFile.Write "     Fail!!!: " & file_left & "   =    " & file_left2 & vbCrLf
-        
-    ' Additional details if applicable
+    ' Additional details to logs if applicable
     If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
     If logFlags1(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
     If logFlags1(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
@@ -167,11 +168,19 @@ Else
 End If
 
 
+' If the data is NOT found in MASTER file, the row will be fonted in red.
+If dataFound = True Then
+    objExcel.Range(objExcel.Cells(intRow, 1), objExcel.Cells(intRow, 24)).Font.Color = RGB(0, 0, 0)
+Else
+    objExcel.Range(objExcel.Cells(intRow, 1), objExcel.Cells(intRow, 24)).Font.Color = RGB(255, 0, 0)
+End If
 
-' End of Loop!
+' Onto the Next Loop! (Next record in ITEMin)
 logFile.Write vbCrLf
 intRow = intRow + 1
 Loop
+
+
 
 ' Output the Success/Failure Rate to Log File
 logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
@@ -184,8 +193,9 @@ MsgBox "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess)
 
 
-objWorkbook.Close
-objExcel.Quit
+
+'objWorkbook.Close
+'objExcel.Quit
 objWorkbook2.Close
 objExcel2.Quit
 
