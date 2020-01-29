@@ -1,5 +1,11 @@
 Sub updateDateWord()
 
+Dim new_fileDate As String
+Dim file_left As String ' Includes Directory
+Dim new_fileName As String ' file_left + new Date
+Dim MAIN_PATH As String ' Directory only using file_left
+Dim intSuccess As Integer
+
 ' This one simply update dates in the MS Word title and also the file
     ' I will need following 3:
         ' Applicable Word file Location and Name
@@ -7,35 +13,68 @@ Sub updateDateWord()
     
 ' Open the ITEMin Excel file to fetch the updated Date
 Set objExcel = CreateObject("Excel.Application")
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMin001.xlsx")
 
-Const MAIN_PATH As String = "C:\Users\ekim\Desktop\Projects\hello\Customer Data File\Test\"
 
-new_fileDate = Trim(objExcel.Cells(2, 10).Value) ' I think we can just get from the first record
-file_left = Trim(objExcel.Cells(2, 24).Value)
-new_fileName = file_left + new_fileDate + ".docx" ' This should be the new file name
+' loop through each row of the excel file
+intSuccess = 0
+intRow = 2
+Do Until objExcel.Cells(intRow, 1).Value = ""
 
-'MsgBox "Just fyi: " & new_fileDate & vbCrLf & vbCrLf & _
-       "File Left: " & file_left & vbCrLf & vbCrLf & _
-       "New: " & new_fileName
-
+new_fileDate = Trim(objExcel.Cells(intRow, 10).Value) ' I think we can just get from the first record
+file_left = Trim(objExcel.Cells(intRow, 24).Value) ' Includes its directory
+new_fileName = file_left + new_fileDate + ".docx" ' Also includes its directory
+MAIN_PATH = Left(file_left, InStrRev(file_left, "\"))
+       
 ' Using substring of the title (file_left) to correctly locate the file from its directory
 Dim file As String
-Dim fileTemp As String
-'MsgBox "ha: " & MAIN_PATH & " ||| " & file_left & "!!!"
-file = Dir$(file_left & "*" & ".*")
-If (Len(file) > 0) Then
-    fileTemp = file
-    MsgBox "Found: " & fileTemp
+Dim oldFile As String
+
+' If font color is Red, then skip it. (Red indicates that the file was not found in Master file
+If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
+    MsgBox "This one should be skipped"
+    intRow = intRow + 1
+    GoTo NextIteration
 Else
-    MsgBox "File Doesn't Exist!"
+    MsgBox "oh nvm. Process this"
 End If
+
+
+' Check if a file with the new name already exists; Due to duplicate files that might exist
+If Len(Dir(new_fileName)) > 0 Then
+    'MsgBox "New File Already Exists!" & vbCrLf & vbCrLf & _
+            "The Existing Name: " & new_fileName
+    intSuccess = intSuccess + 1 ' Item exists! Which means no file update needed
+
+    GoTo NextIteration
+End If
+
+' Check for the existing/old file to prepare for file-read and date-update.
+If file_left <> "" Then
+    file = Dir$(file_left & "*" & ".*")
+    If (Len(file) > 0) Then
+        oldFile = file ' Only the file name without Directory
+        intSuccess = intSuccess + 1
+        'MsgBox "Found: " & oldFile & vbCrLf & _
+                "File_left: " & file_left
+    Else
+        'MsgBox "File Doesn't Exist! Please Check the Direcotry or Filename"
+        GoTo NextIteration
+    End If
+Else
+    ' Do nothing since no file exists
+    'MsgBox "This Doesn't Require a File!"
+    intSuccess = intSuccess + 1 ' No Word file needed for the item
+    GoTo NextIteration
+
+End If
+
 
 
 ' Open the Word document
 Dim wdApp As Object, wdDoc As Object
 Set wdApp = CreateObject("Word.Application")
-Set wdDoc = wdApp.Documents.Open(MAIN_PATH + fileTemp) '("C:\Users\ekim\Desktop\Projects\hello\testbaby.docx")
+Set wdDoc = wdApp.Documents.Open(MAIN_PATH + oldFile) '("C:\Users\ekim\Desktop\Projects\hello\testbaby.docx")
 wdApp.Visible = True
 
 With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content instead of Range
@@ -44,29 +83,83 @@ With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content ins
     '.Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
     .Text = "testbaby"
     .MatchWildcards = True
-    .Replacement.Text = new_fileDate ' Change .Text to what's provided here
-    .Execute Replace:=2 ' Apply for Replace All
+    .Replacement.Text = "testbaby" ' new_fileDate ' Change .Text to what's provided here
+    '.Execute Replace:=2 ' Apply for Replace All
 End With
  
 
 '!!!! After above, change the filename with the updated date
 '1) Store the full path of the document in a string: oldfile = ActiveDocument.FullName
-    ' Can either fetch the file using a substring in the directory (Column X; datafile_left)
-    ' Or grab the file using Master Excel file.
+    oldFullFile = MAIN_PATH + oldFile '
+    
+    MsgBox "Old Name: " & oldFile & vbCrLf & _
+           "Full File: " & oldFullFile & vbCrLf & _
+           "New Name: " & new_fileName
 
 '2) SaveAs the document with ActiveDocument.SaveAs
+    wdDoc.SaveAs (new_fileName)
+
+    ' Save changes and close MS Words
+    wdApp.ActiveDocument.Close SaveChanges:=True
+    wdApp.Quit
 
 
-'3) Delete the old file with Kill oldfile
+'3) Move old file to OldFiles direcotry (instead of copy+move+delete_original)
+    
+    'Check if OldFiles directory exists where we can move to! If not, create it for old files storage
+    Call makeDirectory(MAIN_PATH)
+    
+    Dim OLD_FILES_PATH As String
+    OLD_FILES_PATH = MAIN_PATH + "OldFiles\"
+    
+    'Instead of copy, this one just move the file (No need to delete this original)
+    '!!! There might be an existing file in the OLD_FILES_PATH so we need a filter
+    Set fso = CreateObject("scripting.filesystemobject")
+    fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
+
+' SKIPPED!
+'4) Delete the old file with Kill oldfile (No need if we decided to Move instead of using CopyFile)
+    'Kill oldFullFile
+
+' Now Lastly, make updates to the MASTER File (update Date) for those processed
+    '1. Open MASTER Excel file.
+    '2. Use intRow to locate to the correct Row # in the Master File.
+    '3. Update it using new_fileDate which we got from ItemIn
+        ' - Skip above for ones that are red font
+    
+    
+    
+    
+    
+NextIteration:
+
+' Go to next loop!
+intRow = intRow + 1
+Loop
+
+
+MsgBox "Total Items Checked: " & (intRow - 2) & vbCrLf & _
+       "            Success: " & intSuccess & vbCrLf
 
 
 
 
-' Close files
-'wdApp.ActiveDocument.Close SaveChanges:=True
+
+
 objWorkbook.Close
 objExcel.Quit
-
 End Sub
+
+
+Function makeDirectory(strDir As String)
+    Set fso = CreateObject("scripting.filesystemobject")
+    Dim path As String
+    path = strDir + "OldFiles\"
+    
+    If Not fso.FolderExists(path) Then
+        fso.CreateFolder path
+    End If
+    
+End Function
 
 
