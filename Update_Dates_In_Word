@@ -16,6 +16,12 @@ Dim intRow As Integer
 Set objExcel = CreateObject("Excel.Application")
 Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
 
+' Log file stuffs - Initially create/clear it
+Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest111.log"
+Set logFile = objOutput.CreateTextFile(logFileName, True)
+logFile.Write "Datetime babyyy: " & Now() & vbCrLf & _
+              "-------------------------------------------------------------" & vbCrLf
 
 ' loop through each row of the excel file
 intSuccess = 0
@@ -26,18 +32,17 @@ new_fileDate = Trim(objExcel.Cells(intRow, 10).Value) ' I think we can just get 
 file_left = Trim(objExcel.Cells(intRow, 24).Value) ' Includes its directory
 new_fileName = file_left + new_fileDate + ".docx" ' Also includes its directory
 MAIN_PATH = Left(file_left, InStrRev(file_left, "\"))
-       
+              
 ' Using substring of the title (file_left) to correctly locate the file from its directory
 Dim file As String
 Dim oldFile As String
 
 ' If font color is Red, then skip it. (Red indicates that the file was not found in Master file
 If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
-    MsgBox "This one should be skipped"
-    intRow = intRow + 1
+    'MsgBox "Skipping this one..."
     GoTo NextIteration
 Else
-    MsgBox "oh nvm. Process this"
+    'MsgBox "Good stuff, processing..."
 End If
 
 
@@ -45,7 +50,7 @@ End If
 If Len(Dir(new_fileName)) > 0 Then
     'MsgBox "New File Already Exists!" & vbCrLf & vbCrLf & _
             "The Existing Name: " & new_fileName
-    intSuccess = intSuccess + 1 ' Item exists! Which means no file update needed
+    'intSuccess = intSuccess + 1 ' Item exists! Which means no file update needed
 
     GoTo NextIteration
 End If
@@ -55,7 +60,6 @@ If file_left <> "" Then
     file = Dir$(file_left & "*" & ".*")
     If (Len(file) > 0) Then
         oldFile = file ' Only the file name without Directory
-        intSuccess = intSuccess + 1
         'MsgBox "Found: " & oldFile & vbCrLf & _
                 "File_left: " & file_left
     Else
@@ -65,11 +69,9 @@ If file_left <> "" Then
 Else
     ' Do nothing since no file exists
     'MsgBox "This Doesn't Require a File!"
-    intSuccess = intSuccess + 1 ' No Word file needed for the item
     GoTo NextIteration
 
 End If
-
 
 
 ' Open the Word document
@@ -97,13 +99,12 @@ End With
            "Full File: " & oldFullFile & vbCrLf & _
            "New Name: " & new_fileName
 
-'2) SaveAs the document with ActiveDocument.SaveAs
+'2) Create a new file with the new Filename using SaveAs
     wdDoc.SaveAs (new_fileName)
 
     ' Save changes and close MS Words
-    wdApp.ActiveDocument.Close SaveChanges:=True
+    wdApp.ActiveDocument.Close ' SaveChanges:=True ' Since we are making a copy, i don't think we should save the active one
     wdApp.Quit
-
 
 '3) Move old file to OldFiles direcotry (instead of copy+move+delete_original)
     
@@ -115,9 +116,29 @@ End With
     
     ' Move vs Copy And Delete
     '!!! There might be an existing file in the OLD_FILES_PATH so we need a filter
+    Dim send_to0 As String
+    send_to0 = Trim(objExcel.Cells(intRow, 1).Value)
+    
+    MsgBox "send_to0: " & send_to0 & vbCrLf & _
+        "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & vbCrLf & _
+        "oldFile: " & oldFile & vbCrLf & vbCrLf & _
+        "+: " & (OLD_FILES_PATH + oldFile) & vbCrLf & vbCrLf & _
+        "Dir(+): " & Dir(OLD_FILES_PATH + oldFile)
+    
+    If Dir(OLD_FILES_PATH + oldFile) = "" Then
+        MsgBox "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & _
+               "OldFile: " & oldFile
+    Else
+        MsgBox "File is already made"
+        GoTo NextEnd
+    End If
+    
+    
+    intSuccess = intSuccess + 1 ' No Word file needed for the item
+    
     Set fso = CreateObject("scripting.filesystemobject")
     fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
-       
+    
        
 NextIteration:
 
@@ -130,9 +151,12 @@ MsgBox "Total Items Checked: " & (intRow - 2) & vbCrLf & _
        "            Success: " & intSuccess & vbCrLf
 
 
-
 objWorkbook.Close
 objExcel.Quit
+
+
+NextEnd:
+
 End Sub
 
 
