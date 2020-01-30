@@ -5,6 +5,7 @@ Dim file_left As String ' Includes Directory
 Dim new_fileName As String ' file_left + new Date
 Dim MAIN_PATH As String ' Directory only using file_left
 Dim intSuccess As Integer
+Dim intRow As Integer
 
 ' This one simply update dates in the MS Word title and also the file
     ' I will need following 3:
@@ -13,7 +14,7 @@ Dim intSuccess As Integer
     
 ' Open the ITEMin Excel file to fetch the updated Date
 Set objExcel = CreateObject("Excel.Application")
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMin001.xlsx")
+Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
 
 
 ' loop through each row of the excel file
@@ -92,7 +93,7 @@ End With
 '1) Store the full path of the document in a string: oldfile = ActiveDocument.FullName
     oldFullFile = MAIN_PATH + oldFile '
     
-    MsgBox "Old Name: " & oldFile & vbCrLf & _
+    'MsgBox "Old Name: " & oldFile & vbCrLf & _
            "Full File: " & oldFullFile & vbCrLf & _
            "New Name: " & new_fileName
 
@@ -112,25 +113,12 @@ End With
     Dim OLD_FILES_PATH As String
     OLD_FILES_PATH = MAIN_PATH + "OldFiles\"
     
-    'Instead of copy, this one just move the file (No need to delete this original)
+    ' Move vs Copy And Delete
     '!!! There might be an existing file in the OLD_FILES_PATH so we need a filter
     Set fso = CreateObject("scripting.filesystemobject")
     fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
-
-' SKIPPED!
-'4) Delete the old file with Kill oldfile (No need if we decided to Move instead of using CopyFile)
-    'Kill oldFullFile
-
-' Now Lastly, make updates to the MASTER File (update Date) for those processed
-    '1. Open MASTER Excel file.
-    '2. Use intRow to locate to the correct Row # in the Master File.
-    '3. Update it using new_fileDate which we got from ItemIn
-        ' - Skip above for ones that are red font
-    
-    
-    
-    
-    
+       
+       
 NextIteration:
 
 ' Go to next loop!
@@ -140,9 +128,6 @@ Loop
 
 MsgBox "Total Items Checked: " & (intRow - 2) & vbCrLf & _
        "            Success: " & intSuccess & vbCrLf
-
-
-
 
 
 
@@ -161,5 +146,4 @@ Function makeDirectory(strDir As String)
     End If
     
 End Function
-
 
