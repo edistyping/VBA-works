@@ -1,12 +1,5 @@
 Sub compareWithMaster()
 
-' J\Sales\Public\FTP-automation\FTP-\Itemin
-
-' This file is used to compare MASTER vs ITEMin
-    ' Left Blank, File Date, Email Receipients
-' Log out the differences
-' Ex: Wrong file name, missing data in a column(s).
-
 ' create system objects for file handling
 Set objExcel = CreateObject("Excel.Application")
 Set objExcel2 = CreateObject("Excel.Application")
@@ -15,13 +8,11 @@ Set objExcel2 = CreateObject("Excel.Application")
 objExcel.Visible = True
 objExcel2.Visible = True
 
-
-
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest0.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest1.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Datetime of Log Creation: " & Now() & vbCrLf & _
+logFile.Write "Process 1    -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 
 ' path to the excel file
@@ -146,7 +137,7 @@ If logFlags1(0) = "1" And logFlags1(1) = "1" Then
     logFile.Write "(" & (intRow - 1) & ") " & send_to & " | " & file_left & vbCrLf & _
                   "     Status: Not Found!" & vbCrLf & _
                   "         Error: Looks like there wasn't a matching record in Master Excel file... Please check again!" & vbCrLf & _
-                  "     FAIL" & vbCrLf
+                  "     ---> FAIL" & vbCrLf
 
     ' Additional details to logs if applicable
     'If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
@@ -165,7 +156,7 @@ Else
                   "        email_cc: " & email_cc & vbCrLf & _
                   "        email_bcc: " & email_bcc & vbCrLf & _
                   "        file_date: " & file_date & vbCrLf & _
-                  "     SUCCESS!" & vbCrLf
+                  "     ---> SUCCESS!" & vbCrLf
 End If
 
 ' This coloring is needed for Phase 2 to update Wo0rds

@@ -18,9 +18,9 @@ Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest111.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest2.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Datetime babyyy: " & Now() & vbCrLf & _
+logFile.Write "Process 2    -   Datetime babyyy: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 
 ' loop through each row of the excel file
@@ -28,7 +28,8 @@ intSuccess = 0
 intRow = 2
 Do Until objExcel.Cells(intRow, 1).Value = ""
 
-new_fileDate = Trim(objExcel.Cells(intRow, 10).Value) ' I think we can just get from the first record
+send_to = Trim(objExcel.Cells(intRow, 1).Value) '
+new_fileDate = Trim(objExcel.Cells(intRow, 10).Value)
 file_left = Trim(objExcel.Cells(intRow, 24).Value) ' Includes its directory
 new_fileName = file_left + new_fileDate + ".docx" ' Also includes its directory
 MAIN_PATH = Left(file_left, InStrRev(file_left, "\"))
@@ -39,6 +40,11 @@ Dim oldFile As String
 
 ' If font color is Red, then skip it. (Red indicates that the file was not found in Master file
 If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                  "     Filename: " & file_left & vbCrLf & _
+                  "     Error: This item will be skipped as it's determined Invalid... (Red Font)" & vbCrLf & _
+                  "     Error: This is most likely due to not being found in the MASTER Excel file." & vbCrLf
+
     'MsgBox "Skipping this one..."
     GoTo NextIteration
 Else
@@ -50,7 +56,9 @@ End If
 If Len(Dir(new_fileName)) > 0 Then
     'MsgBox "New File Already Exists!" & vbCrLf & vbCrLf & _
             "The Existing Name: " & new_fileName
-    'intSuccess = intSuccess + 1 ' Item exists! Which means no file update needed
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                  "     New Filename: " & new_fileName & vbCrLf & _
+                  "         ---> Already EXISTS in the directory! " & vbCrL
 
     GoTo NextIteration
 End If
@@ -64,11 +72,19 @@ If file_left <> "" Then
                 "File_left: " & file_left
     Else
         'MsgBox "File Doesn't Exist! Please Check the Direcotry or Filename"
+        logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                      "     Filename (Prefix): " & file_left & vbCrLf & _
+                      "     Error: The Word file wasn't found in the directory!" & vbCrLf
+        
         GoTo NextIteration
     End If
 Else
     ' Do nothing since no file exists
     'MsgBox "This Doesn't Require a File!"
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                  "     Filename (Prefix): " & file_left & vbCrLf & _
+                  "     ---> This record doesn't require a file" & vbCrLf
+    
     GoTo NextIteration
 
 End If
@@ -119,36 +135,49 @@ End With
     Dim send_to0 As String
     send_to0 = Trim(objExcel.Cells(intRow, 1).Value)
     
-    MsgBox "send_to0: " & send_to0 & vbCrLf & _
+    'MsgBox "send_to0: " & send_to0 & vbCrLf & _
         "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & vbCrLf & _
         "oldFile: " & oldFile & vbCrLf & vbCrLf & _
         "+: " & (OLD_FILES_PATH + oldFile) & vbCrLf & vbCrLf & _
         "Dir(+): " & Dir(OLD_FILES_PATH + oldFile)
     
     If Dir(OLD_FILES_PATH + oldFile) = "" Then
-        MsgBox "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & _
+        'MsgBox "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & _
                "OldFile: " & oldFile
+        Set fso = CreateObject("scripting.filesystemobject")
+        fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
+        
+        logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                      "     New Filename: " & new_fileName & vbCrLf & _
+                      "     Old Filename: " & oldFile & vbCrLf & _
+                      "         ---> Moved to the following: " & OLD_FILES_PATH & vbCrLf & _
+                      "     Note: Old File was Successfully moved to the subfolder OldFiles" & vbCrLf
+
     Else
-        MsgBox "File is already made"
-        GoTo NextEnd
+        ' MsgBox "File is already made"
+        logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                      "     New Filename: " & new_fileName & vbCrLf & _
+                      "     Old Filename: " & oldFile & vbCrLf & _
+                      "         ---> Already EXISTS in the oldFile folder." & vbCrLf & _
+                      "     Note: Old File is already archived in OldFiles folder." & vbCrLf
+        ' !!! Then might have to Kill/delete this Old File
     End If
     
     
     intSuccess = intSuccess + 1 ' No Word file needed for the item
     
-    Set fso = CreateObject("scripting.filesystemobject")
-    fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
-    
        
 NextIteration:
 
 ' Go to next loop!
+logFile.Write vbCrLf & vbCrLf
 intRow = intRow + 1
 Loop
 
 
-MsgBox "Total Items Checked: " & (intRow - 2) & vbCrLf & _
-       "            Success: " & intSuccess & vbCrLf
+logFile.Write "---------------------------------------------------------" & vbCrLf
+logFile.Write "Total Items Checked: " & (intRow - 2) & vbCrLf & _
+              "New Files Created: " & intSuccess & vbCrLf
 
 
 objWorkbook.Close
@@ -156,6 +185,7 @@ objExcel.Quit
 
 
 NextEnd:
+    MsgBox "Hi!"
 
 End Sub
 
