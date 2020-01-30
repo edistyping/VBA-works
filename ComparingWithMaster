@@ -1,5 +1,7 @@
 Sub compareWithMaster()
 
+' J\Sales\Public\FTP-automation\FTP-\Itemin
+
 ' This file is used to compare MASTER vs ITEMin
     ' Left Blank, File Date, Email Receipients
 ' Log out the differences
@@ -11,6 +13,7 @@ Set objExcel2 = CreateObject("Excel.Application")
 
 ' FOr testing
 objExcel.Visible = True
+objExcel2.Visible = True
 
 
 
@@ -23,11 +26,11 @@ logFile.Write "Datetime of Log Creation: " & Now() & vbCrLf & _
 
 ' path to the excel file
 Set objWorkbook = objExcel.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\ITEMin000.xlsx")
+("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
 
 
 Set objWorkbook2 = objExcel2.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\MASTER000.xlsx")
+("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST.xlsx")
 
 
 ' start at the second row, ie, not the column header
@@ -103,7 +106,7 @@ For Each sh In objWorkbook2.Worksheets
                 keepSearching = True
                 logFlags1(1) = "1"
             End If
-            If file_date <> file_date2 Then keepSearching = True: logFlags1(2) = "1"
+            'If file_date <> file_date2 Then keepSearching = True: logFlags1(2) = "1"
             If email_to <> email_to2 Then keepSearching = True: logFlags1(3) = "1"
             If email_cc <> email_cc2 Then keepSearching = True: logFlags1(4) = "1"
             If email_bcc <> email_bcc2 Then keepSearching = True: logFlags1(5) = "1" ': logFile.Write "           Shit: " & sh.Name & "   Row:" & rw.Row & ": " & email_bcc & " || " & email_bcc2
@@ -139,7 +142,7 @@ NextIteration:
     
 Next sh
 
-
+' Logging for Success/Fail
 If logFlags1(0) = "1" And logFlags1(1) = "1" Then
     ' Output to Log
     logFile.Write "(" & (intRow - 1) & ") " & send_to & " | " & file_left & vbCrLf & _
@@ -148,7 +151,7 @@ If logFlags1(0) = "1" And logFlags1(1) = "1" Then
                   "     FAIL" & vbCrLf
 
     ' Additional details to logs if applicable
-    If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
+    'If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
     If logFlags1(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
     If logFlags1(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
     If logFlags1(5) = "1" Then logFile.Write "      File Fullname is not matching!" & vbCrLf
@@ -167,36 +170,43 @@ Else
                   "     SUCCESS!" & vbCrLf
 End If
 
-
+' This coloring is needed for Phase 2 to update Words
 ' If the data is NOT found in MASTER file, the row will be fonted in red.
 If dataFound = True Then
     objExcel.Range(objExcel.Cells(intRow, 1), objExcel.Cells(intRow, 24)).Font.Color = RGB(0, 0, 0)
-Else
+    
+    ' Since its Word File is updated, we update the MASTER file as well
+    objExcel2.Worksheets(sh.Name).Cells(rw.Row, 10).Value = file_date
+    objExcel2.Worksheets(sh.Name).Cells(rw.Row, 10).Font.Color = RGB(0, 0, 255) ' Updated is in Blue
+    
+Else ' Not Found in MASTER -> Change the Font in ITEMin
     objExcel.Range(objExcel.Cells(intRow, 1), objExcel.Cells(intRow, 24)).Font.Color = RGB(255, 0, 0)
 End If
+
 
 ' Onto the Next Loop! (Next record in ITEMin)
 logFile.Write vbCrLf
 intRow = intRow + 1
 Loop
 
-
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ' Output the Success/Failure Rate to Log File
 logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
-       "Failure: " & CStr(intRow - 2 - intSuccess)
+       "Failure: " & CStr(intRow - 2 - intSuccess) & vbCrLf & _
+       "*Note: For Successful " & CStr(intSuccess) & " records, Dates will be updated in MASTER File!"
+       
 
 ' Output the Success/Failure Rate as a Pop-up message
 MsgBox "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess)
 
-
-
 'objWorkbook.Close
 'objExcel.Quit
-objWorkbook2.Close
-objExcel2.Quit
+'objWorkbook2.Close
+'objExcel2.Quit
 
 End Sub
+
