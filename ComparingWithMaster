@@ -69,11 +69,7 @@ dataFound = False
 ' loop against the MASTER file
 '''''''''''''' ISSUEEEEEEEEEE: Only gets call for first outer loop
 For Each sh In objWorkbook2.Worksheets
-    If sh.Index = 1 Then GoTo NextIteration
-
-    ' test here
-    testShName = ""
-    testRowName = ""
+    If sh.Index = 1 Then GoTo NextSheet
 
     ' In each worksheet in MASTER, check each row for the matching record
     For Each rw In sh.Rows
@@ -87,10 +83,14 @@ For Each sh In objWorkbook2.Worksheets
         
         Dim keepSearching As Boolean
         keepSearching = False
+        
+        'If is in Red Highlight, then Ignore this Inactive one
+        If rw.Cells(1).Interior.Color = RGB(255, 0, 0) And rw.Cells(2).Interior.Color = RGB(255, 0, 0) Then
+            GoTo NextRow
+        End If
                 
         ' Check further comparison if send_to data matches
         If send_to = rw.Cells(1).Value Then
-            
             
             ' Fetch the data to compare it with Master later
             send_to2 = rw.Cells(1).Value
@@ -111,12 +111,9 @@ For Each sh In objWorkbook2.Worksheets
             If email_cc <> email_cc2 Then keepSearching = True: logFlags1(4) = "1"
             If email_bcc <> email_bcc2 Then keepSearching = True: logFlags1(5) = "1" ': logFile.Write "           Shit: " & sh.Name & "   Row:" & rw.Row & ": " & email_bcc & " || " & email_bcc2
 
-            
             ' Below checks if a correct record is found in MASTER. If so, log this good too
             If keepSearching = False Then dataFound = True
             If dataFound = True Then
-                testShName = CStr(sh.Name)
-                testRowName = CStr(rw.Row)
                 intSuccess = intSuccess + 1
                 Exit For
             End If
@@ -127,6 +124,7 @@ For Each sh In objWorkbook2.Worksheets
         End If
         
         
+NextRow:
         If rw.Row >= 200 Then
             '''''MsgBox "200 reached" + CStr(goNextSheet) + "  " + CStr(dataFound)
             Exit For
@@ -134,7 +132,7 @@ For Each sh In objWorkbook2.Worksheets
     Next rw
     
 
-NextIteration:
+NextSheet:
     ' If the matching record is found in MASTER, then we just move to next item in ITEMin file.
     If dataFound = True Then
         Exit For
@@ -170,7 +168,7 @@ Else
                   "     SUCCESS!" & vbCrLf
 End If
 
-' This coloring is needed for Phase 2 to update Words
+' This coloring is needed for Phase 2 to update Wo0rds
 ' If the data is NOT found in MASTER file, the row will be fonted in red.
 If dataFound = True Then
     objExcel.Range(objExcel.Cells(intRow, 1), objExcel.Cells(intRow, 24)).Font.Color = RGB(0, 0, 0)
