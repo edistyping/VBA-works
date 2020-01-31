@@ -1,5 +1,14 @@
 Sub updateDateWord()
 
+Application.ScreenUpdating = False
+
+' This one simply update dates in the MS Word title and also the file
+    ' Create a new file with updated Dates
+    ' Store oldFiles to a subfolder named oldFiles (Might switch to Archives)
+    ' Include logs for both Success and Failure
+    ' Note: This process will skip INVALID records that were determined from the previous Process.
+    
+' Declaration of variables to use for this process
 Dim new_fileDate As String
 Dim file_left As String ' Includes Directory
 Dim new_fileName As String ' file_left + new Date
@@ -7,11 +16,7 @@ Dim MAIN_PATH As String ' Directory only using file_left
 Dim intSuccess As Integer
 Dim intRow As Integer
 
-' This one simply update dates in the MS Word title and also the file
-    ' I will need following 3:
-        ' Applicable Word file Location and Name
-        ' Updated date from ITEMin file
-    
+
 ' Open the ITEMin Excel file to fetch the updated Date
 Set objExcel = CreateObject("Excel.Application")
 Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
@@ -54,8 +59,6 @@ End If
 
 ' Check if a file with the new name already exists; Due to duplicate files that might exist
 If Len(Dir(new_fileName)) > 0 Then
-    'MsgBox "New File Already Exists!" & vbCrLf & vbCrLf & _
-            "The Existing Name: " & new_fileName
     logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
                   "     New Filename: " & new_fileName & vbCrLf & _
                   "         ---> Already EXISTS in the directory! " & vbCrL
@@ -67,29 +70,24 @@ End If
 If file_left <> "" Then
     file = Dir$(file_left & "*" & ".*")
     If (Len(file) > 0) Then
-        oldFile = file ' Only the file name without Directory
-        'MsgBox "Found: " & oldFile & vbCrLf & _
-                "File_left: " & file_left
+        oldFile = file ' 'file' includes only the file name excluding its Directory
     Else
-        'MsgBox "File Doesn't Exist! Please Check the Direcotry or Filename"
         logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
                       "     Filename (Prefix): " & file_left & vbCrLf & _
                       "     Error: The Word file wasn't found in the directory!" & vbCrLf
-        
         GoTo NextIteration
     End If
 Else
     ' Do nothing since no file exists
-    'MsgBox "This Doesn't Require a File!"
     logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
                   "     Filename (Prefix): " & file_left & vbCrLf & _
                   "     ---> This record doesn't require a file" & vbCrLf
     
     GoTo NextIteration
-
 End If
 
 
+' Note: Below creates a new file and move the old file to a subdirectory named 'OldFiles'
 ' Open the Word document
 Dim wdApp As Object, wdDoc As Object
 Set wdApp = CreateObject("Word.Application")
@@ -107,7 +105,6 @@ With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content ins
 End With
  
 
-'!!!! After above, change the filename with the updated date
 '1) Store the full path of the document in a string: oldfile = ActiveDocument.FullName
     oldFullFile = MAIN_PATH + oldFile '
     
@@ -134,16 +131,9 @@ End With
     '!!! There might be an existing file in the OLD_FILES_PATH so we need a filter
     Dim send_to0 As String
     send_to0 = Trim(objExcel.Cells(intRow, 1).Value)
-    
-    'MsgBox "send_to0: " & send_to0 & vbCrLf & _
-        "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & vbCrLf & _
-        "oldFile: " & oldFile & vbCrLf & vbCrLf & _
-        "+: " & (OLD_FILES_PATH + oldFile) & vbCrLf & vbCrLf & _
-        "Dir(+): " & Dir(OLD_FILES_PATH + oldFile)
-    
+        
     If Dir(OLD_FILES_PATH + oldFile) = "" Then
-        'MsgBox "OLD_FILES_PATH: " & OLD_FILES_PATH & vbCrLf & _
-               "OldFile: " & oldFile
+        ' Old File doesn't exist in OldFiles directory so just move it
         Set fso = CreateObject("scripting.filesystemobject")
         fso.MoveFile Source:=oldFullFile, Destination:=OLD_FILES_PATH
         
@@ -154,18 +144,15 @@ End With
                       "     Note: Old File was Successfully moved to the subfolder OldFiles" & vbCrLf
 
     Else
-        ' MsgBox "File is already made"
+        ' Old File already exist (mainly due to same client for different report or etc.)
         logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
                       "     New Filename: " & new_fileName & vbCrLf & _
                       "     Old Filename: " & oldFile & vbCrLf & _
                       "         ---> Already EXISTS in the oldFile folder." & vbCrLf & _
                       "     Note: Old File is already archived in OldFiles folder." & vbCrLf
-        ' !!! Then might have to Kill/delete this Old File
     End If
     
-    
-    intSuccess = intSuccess + 1 ' No Word file needed for the item
-    
+    intSuccess = intSuccess + 1
        
 NextIteration:
 
@@ -174,18 +161,17 @@ logFile.Write vbCrLf & vbCrLf
 intRow = intRow + 1
 Loop
 
-
 logFile.Write "---------------------------------------------------------" & vbCrLf
 logFile.Write "Total Items Checked: " & (intRow - 2) & vbCrLf & _
               "New Files Created: " & intSuccess & vbCrLf
 
-
 objWorkbook.Close
 objExcel.Quit
 
+Application.ScreenUpdating = True
 
-NextEnd:
-    MsgBox "Hi!"
+MsgBox "Total Items Checked: " & (intRow - 2) & vbCrLf & _
+              "New Files Created: " & intSuccess & vbCrLf
 
 End Sub
 
