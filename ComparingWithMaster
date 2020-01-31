@@ -29,8 +29,8 @@ Set objExcel = CreateObject("Excel.Application")
 Set objExcel2 = CreateObject("Excel.Application")
 
 ' For testing
-objExcel.Visible = True
-objExcel2.Visible = True
+'objExcel.Visible = True
+'objExcel2.Visible = True
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
@@ -217,18 +217,16 @@ logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess) & vbCrLf & _
        "*Note: For Successful " & CStr(intSuccess) & " records, Dates will be updated in MASTER File!"
-       
 
 ' Output the Success/Failure Rate as a Pop-up message
 MsgBox "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess)
 
-
-'objWorkbook.Close
-'objExcel.Quit
-'objWorkbook2.Close
-'objExcel2.Quit
+objWorkbook.Close saveChanges:=True
+objExcel.Quit
+objWorkbook2.Close saveChanges:=True
+objExcel2.Quit
 
 End Sub
 
