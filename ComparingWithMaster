@@ -1,10 +1,34 @@
 Sub compareWithMaster()
 
+' Fetch the data from ITEMin.xlsx
+Dim send_to As String
+Dim file_date As String
+Dim file_left As String
+Dim email_to As String
+Dim email_cc As String
+Dim email_bcc As String
+Dim file_fullname As String
+
+' Fetch the data from MASTER.xlsx
+Dim send_to2 As String
+Dim file_date2 As String
+Dim file_left2 As String
+Dim email_to2 As String
+Dim email_cc2 As String
+Dim email_bcc2 As String
+Dim file_fullname2 As String
+
+Dim intRow As Integer
+Dim intSuccess As Integer
+Dim logFlags(5) As String
+
+Dim keepSearching As Boolean
+
 ' create system objects for file handling
 Set objExcel = CreateObject("Excel.Application")
 Set objExcel2 = CreateObject("Excel.Application")
 
-' FOr testing
+' For testing
 objExcel.Visible = True
 objExcel2.Visible = True
 
@@ -12,7 +36,7 @@ objExcel2.Visible = True
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
 logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest1.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Process 1    -   Datetime of Log Creation: " & Now() & vbCrLf & _
+logFile.Write "Process 1   -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 
 ' path to the excel file
@@ -21,7 +45,7 @@ Set objWorkbook = objExcel.Workbooks.Open _
 
 
 Set objWorkbook2 = objExcel2.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST.xlsx")
+("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST2.xlsx")
 
 
 ' start at the second row, ie, not the column header
@@ -32,14 +56,8 @@ intSucess = 0
 
 ' loop through each row of the excel file
 Do Until objExcel.Cells(intRow, 1).Value = ""
-    
-' grab the rest of the excel file information
-' If the first cell is blank exit the program (SHM)
-client = Trim(objExcel.Cells(intRow, 1).Value)
-If client = "" Then
-    ''''exit do
-End If
 
+   
 ' Fetch the data to compare it with Master later
 file_date = Trim(objExcel.Cells(intRow, 10).Value)
 file_left = Trim(objExcel.Cells(intRow, 14).Value)
@@ -51,28 +69,30 @@ file_fullname = Trim(objExcel.Cells(intRow, 9).Value)
 
 Dim dataFound As Boolean
 dataFound = False
-Dim logFlags As String
-Dim logFlags1(5) As String
 
 ' Reset for the next line
 dataFound = False
 
+''''''''''''MsgBox "Now doing... " & send_to & vbCrLf & _
+       "    " & file_left
+
 ' loop against the MASTER file
 '''''''''''''' ISSUEEEEEEEEEE: Only gets call for first outer loop
 For Each sh In objWorkbook2.Worksheets
-    If sh.Index = 1 Then GoTo NextSheet
-
+    If sh.Index = 1 Then GoTo NextSheet ' Skip the first 'Uniq Customer Projects' in the MASTER file
+     '   MsgBox "Searching " & send_to & vbCrLf & _
+               "Sh Index: " & sh.Index
+        
     ' In each worksheet in MASTER, check each row for the matching record
     For Each rw In sh.Rows
     
-        logFlags1(0) = "0"
-        logFlags1(1) = "0"
-        logFlags1(2) = "0"
-        logFlags1(3) = "0"
-        logFlags1(4) = "0"
-        logFlags1(5) = "0"
+        logFlags(0) = "0"
+        logFlags(1) = "0"
+        logFlags(2) = "0"
+        logFlags(3) = "0"
+        logFlags(4) = "0"
+        logFlags(5) = "0"
         
-        Dim keepSearching As Boolean
         keepSearching = False
         
         'If is in Red Highlight, then Ignore this Inactive one
@@ -81,43 +101,51 @@ For Each sh In objWorkbook2.Worksheets
         End If
                 
         ' Check further comparison if send_to data matches
-        If send_to = rw.Cells(1).Value Then
+        send_to2 = Trim(rw.Cells(1).Value)
+        
+        ' MsgBox "    wtfwtf:" & send_to2
+        
+        If send_to <> send_to2 Or send_to2 = "" Then
+            logFlags(0) = "1"
+            logFlags(1) = "1"
+            GoTo NextRow
+        End If
+ 
+        
+        If send_to = send_to2 Then
             
             ' Fetch the data to compare it with Master later
-            send_to2 = rw.Cells(1).Value
-            file_left2 = rw.Cells(14).Value
-            file_date2 = rw.Cells(10).Value
-            email_to2 = rw.Cells(2).Value
-            email_cc2 = rw.Cells(3).Value
-            email_bcc2 = rw.Cells(4).Value
+            email_to2 = Trim(rw.Cells(2).Value)
+            email_cc2 = Trim(rw.Cells(3).Value)
+            email_bcc2 = Trim(rw.Cells(4).Value)
+            file_date2 = Trim(rw.Cells(10).Value)
+            file_left2 = Trim(rw.Cells(14).Value)
+
             
             ' Below checks for any failure/unmatched. If so, log this bad boys
-            logFlags1(0) = "0" ' Initialize to 0 since we know send_to equals send_to2
             If file_left <> file_left2 Then
                 keepSearching = True
-                logFlags1(1) = "1"
+                logFlags(1) = "1"
+                GoTo NextRow ' Since it's bad just skip it (Error: Wrong Filename!)
             End If
-            'If file_date <> file_date2 Then keepSearching = True: logFlags1(2) = "1"
-            If email_to <> email_to2 Then keepSearching = True: logFlags1(3) = "1"
-            If email_cc <> email_cc2 Then keepSearching = True: logFlags1(4) = "1"
-            If email_bcc <> email_bcc2 Then keepSearching = True: logFlags1(5) = "1" ': logFile.Write "           Shit: " & sh.Name & "   Row:" & rw.Row & ": " & email_bcc & " || " & email_bcc2
-
+            'If file_date <> file_date2 Then keepSearching = True: logFlags(2) = "1"
+            If email_to <> email_to2 Then keepSearching = True: logFlags(3) = "1"
+            If email_cc <> email_cc2 Then keepSearching = True: logFlags(4) = "1"
+            If email_bcc <> email_bcc2 Then keepSearching = True: logFlags(5) = "1"
+            
             ' Below checks if a correct record is found in MASTER. If so, log this good too
-            If keepSearching = False Then dataFound = True
-            If dataFound = True Then
-                intSuccess = intSuccess + 1
+            If keepSearching = False Then
+                dataFound = True
                 Exit For
             End If
-            
-        Else
-            logFlags1(0) = "1"
-            logFlags1(1) = "1"
+                        
         End If
         
         
 NextRow:
-        If rw.Row >= 200 Then
-            '''''MsgBox "200 reached" + CStr(goNextSheet) + "  " + CStr(dataFound)
+        ' Increase if you must, Luke Skypwalker
+        If rw.Row >= 150 Then
+            ''''''''MsgBox "wtf... " & rw.Row
             Exit For
         End If
     Next rw
@@ -126,13 +154,16 @@ NextRow:
 NextSheet:
     ' If the matching record is found in MASTER, then we just move to next item in ITEMin file.
     If dataFound = True Then
+        intSuccess = intSuccess + 1
         Exit For
     End If
     
+   ''''''' MsgBox "Going to Next sheet"
 Next sh
 
+
 ' Logging for Success/Fail
-If logFlags1(0) = "1" And logFlags1(1) = "1" Then
+If logFlags(0) = "1" And logFlags(1) = "1" Then
     ' Output to Log
     logFile.Write "(" & (intRow - 1) & ") " & send_to & " | " & file_left & vbCrLf & _
                   "     Status: Not Found!" & vbCrLf & _
@@ -140,10 +171,10 @@ If logFlags1(0) = "1" And logFlags1(1) = "1" Then
                   "     ---> FAIL" & vbCrLf
 
     ' Additional details to logs if applicable
-    'If logFlags1(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
-    If logFlags1(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
-    If logFlags1(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
-    If logFlags1(5) = "1" Then logFile.Write "      File Fullname is not matching!" & vbCrLf
+    'If logFlags(2) = "1" Then logFile.Write "      File Date is not matching!" & vbCrLf
+    If logFlags(3) = "1" Then logFile.Write "      CC Email is not matching!" & vbCrLf
+    If logFlags(4) = "1" Then logFile.Write "      BCC Email is not matching!" & vbCrLf
+    If logFlags(5) = "1" Then logFile.Write "      File Fullname is not matching!" & vbCrLf
 
 Else
     ' Output to Log
@@ -158,6 +189,7 @@ Else
                   "        file_date: " & file_date & vbCrLf & _
                   "     ---> SUCCESS!" & vbCrLf
 End If
+
 
 ' This coloring is needed for Phase 2 to update Wo0rds
 ' If the data is NOT found in MASTER file, the row will be fonted in red.
@@ -192,10 +224,13 @@ MsgBox "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess)
 
+
 'objWorkbook.Close
 'objExcel.Quit
 'objWorkbook2.Close
 'objExcel2.Quit
 
 End Sub
+
+
 
