@@ -32,21 +32,16 @@ Set objExcel2 = CreateObject("Excel.Application")
 'objExcel.Visible = True
 'objExcel2.Visible = True
 
+' path to the excel file
+Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
+Set objWorkbook2 = objExcel2.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST2.xlsx")
+
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
 logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest1.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
 logFile.Write "Process 1   -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
-
-' path to the excel file
-Set objWorkbook = objExcel.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
-
-
-Set objWorkbook2 = objExcel2.Workbooks.Open _
-("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST2.xlsx")
-
 
 ' start at the second row, ie, not the column header
 intRow = 2
@@ -213,6 +208,7 @@ Loop
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ' Output the Success/Failure Rate to Log File
+logFile.Write "---------------------------------------------------------" & vbCrLf
 logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess) & vbCrLf & _
