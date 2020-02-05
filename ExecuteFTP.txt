@@ -14,7 +14,7 @@ logFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\full3.log"
 ' clear the ftp output file
 Set objFTPOutputFile = objFTPOutput.CreateTextFile(logFile, True)
 objFTPOutputFile.Write Now() & vbCrLf
-'objFTPOutputFile.Close
+objFTPOutputFile.Close
 
 ' path to simple output log file
 simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log"
@@ -139,23 +139,22 @@ End If
 
 '''''''''''''''''''''''''''
 ' !!! TESTING for FTP!
-'  FTP Data ===>       ftp.aftersoftna.com | mpacat1 | mpacat1
-'PID = Shell("cmd", vbNormalFocus)
-'TESTFTP = WShell.Run("%comspec% /k", 1, True)
+'
 
-
-'MsgBox "Before the actual FTP codes" ''' Testing
-'TESTFTP = WShell.Run("%comspec% /k ftp binary -s:" & "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat", 1, True)
-
-'GoTo ToEnd
+''''' Since objFTPOutputFile was closed earlier, we need to open the logFile again
+''''''''''''''' Log Test
+Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
+objFTPOutputFile.Write "***Now processing: " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ")" & vbCrLf
+objFTPOutputFile.Close
 
 ' !!! TESTING section ending...
 '''''''''''''''''''''''''''''''''''''''''''''
 
+
 ' if the server name is blank, do not ftp the file
 If Skip = "N" Then
     If ftp_mode = "FTP" Then
-        ftp = WShell.Run("%comspec% /k ftp -d -i -s:""" & datFile & """>>""" & logFile & """", 1, True)
+        ftp = WShell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """", 0, True)
     ElseIf ftp_mode = "FTPS" Then
         FTPS = WShell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, True)
     ElseIf ftp_mode = "SFTP" Then
@@ -163,10 +162,18 @@ If Skip = "N" Then
     End If
 End If
 
+''''''''''''''' Log Test
+Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
+objFTPOutputFile.Write "***Finished Processing..." & vbCrLf & vbCrLf
+objFTPOutputFile.Close
+''''''''''!@#@!$#$@$!#$@#@!#@!$@!$@!$@!$
+
 NextIteration:
 
 ' Close the ftp dat file
 objFile.Close
+
+
 
 
 ' Onto the next record in ITEMin
@@ -178,7 +185,6 @@ objWorkbook.Close
 objExcel.Quit
 
 
-
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' Below are purely for Logging purpose
 ' take a look at the log file and check for errors
@@ -186,27 +192,27 @@ Set objLogFile = objFTPOutput.OpenTextFile(logFile)
 logfileErrors = LCase(objLogFile.ReadAll)
 objLogFile.Close
 
+' open the simple log file for writing
+Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
+
+
 ' depending on what error is found, try to display the correct error message
 If InStr(logfileErrors, "530 login incorrect") >= 1 Or InStr(logfileErrors, "530 you aren't logged in") >= 1 Or InStr(logfileErrors, "service not available") >= 1 Or InStr(logfileErrors, "unable to authenticate") >= 1 Or InStr(logfileErrors, "login or password incorrect") >= 1 Then
-   WScript.Echo "One or more of the client's has username/password problems."
+   objSimpleFile.Write "One or more of the client's has username/password problems."
 ElseIf InStr(logfileErrors, "file not found") >= 1 Or InStr(logfileErrors, "the system cannot find the file specified") >= 1 Or InStr(logfileErrors, "the system cannot find the path specified") >= 1 Then
-   WScript.Echo "One or more of the FTP files could not be found."
+   objSimpleFile.Write "One or more of the FTP files could not be found."
 ElseIf InStr(logfileErrors, "unknown host") >= 1 Or InStr(logfileErrors, "connection failed") >= 1 Then
-    WScript.Echo "One or more of the client's has something wrong with the server name."
+    objSimpleFile.Write "One or more of the client's has something wrong with the server name."
 ElseIf InStr(logfileErrors, "can't change directory to") >= 1 Then
-    WScript.Echo "One or more of the client's has something wrong with the remote server directory."
+    objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory."
 ElseIf InStr(logfileErrors, "network error") >= 1 Or InStr(logfileErrors, "ftp port did not open") >= 1 Or InStr(logfileErrors, "system error") >= 1 Then
-    WScript.Echo "One or more client's had an unknown error."
+    objSimpleFile.Write "One or more client's had an unknown error."
 ElseIf InStr(logfileErrors, "exception") >= 1 Then
-    WScript.Echo "Potential host key problem."
+    objSimpleFile.Write "Potential host key problem."
 End If
 
 ' simplify log for monkeys
 
-
-
-' open the simple log file for writing
-Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
 
 ' read the full log file for error and add the line from this log to the simple log
 Set objLogFile = objFTPOutput.OpenTextFile(logFile)
@@ -225,3 +231,5 @@ ToEnd:
 MsgBox "Process 3 is Ended"
 
 End Sub
+
+
