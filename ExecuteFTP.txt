@@ -74,6 +74,8 @@ If protocol = "FTPS" Then
         port = objExcel.Cells(intRow, 18).Value
     End If
     
+    objFile.Write "option echo on" & vbCrLf ''' test
+    
     objFile.Write "option batch on" & vbCrLf
     objFile.Write "option confirm off" & vbCrLf
     objFile.Write "open ftps://" & Replace(ftp_user, " ", "%20") & ":" & ftp_pass & "@" & ftp_server & ":" & port & vbCrLf
@@ -101,6 +103,8 @@ ElseIf protocol = "SFTP" Then
         hostkey_command = ""
     End If
     
+    objFile.Write "option echo on" & vbCrLf ' Test''fdgpgpigpi
+
     objFile.Write "option batch on" & vbCrLf
     objFile.Write "option confirm off" & vbCrLf
     objFile.Write "open sftp://" & Replace(ftp_user, " ", "%20") & ":" & Replace(Replace(ftp_pass, "+", "%2B"), "@", "%40") & "@" & ftp_server & ":" & port & " " & hostkey_command & vbCrLf
@@ -157,17 +161,42 @@ objFTPOutputFile.Close
 'C:\Users\ekim\AppData\Local\WinSCP.com
 ' if the server name is blank, do not ftp the file
 If Skip = "N" Then
-    If ftp_mode = "FTP" Then
-        ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """", 0, True)
-    ElseIf ftp_mode = "FTPS" Then
-        FTPS = Wshell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, True)
-    ElseIf ftp_mode = "SFTP" Then
-        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /log=""" & logFile & """ & /script=""C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat""  ")
-        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /log=""" & logFile & """ & /command ""open sftp://pmftpmpa1FAKE:%2B4$3Uqa%40eku$wEswey$-R6get5$ZaSw4@gmmft.ext.gm.com:22""  ")
-        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
-        SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /script=""" & datFile & """ & /log=""" & logFile & """   ")
+    
+    ftp = 333
+    FTPS = 333
+    SFTP = 333
 
+' Close the ftp dat file   !!! This was hte issue of FTPS stuff. I guess since the datFile was still opened and connetcted _
+objFile variable, it's causing problem
+objFile.Close
+   
+
+    If ftp_mode = "FTP" Then
+        ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """ ", 1, True)
+    ElseIf ftp_mode = "FTPS" Then
+        'FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /int=nul /script=C:/Users/ekim/Desktop/Projects/hello/ftpTestFiles/ftpcmd.dat", 1, True)  ' Good
+        
+        ' it stopped working all of sudden wtf. Investigate
+' (OG)  FTPS = WShell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, true)
+         FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 1, True)  ' Good
+                
+    ElseIf ftp_mode = "SFTP" Then
+        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
+        SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ & /log=""" & logFile & """ ", 1, True)
     End If
+'
+'    MsgBox "ftp: " & ftp & vbCrLf & _
+'           "FTPS: " & FTPS & vbCrLf & _
+'           "SFTP: " & SFTP & vbCrLf
+'
+'
+'    If ftp = 1 Or FTPS = 1 Or SFTP = 1 Then
+'        MsgBox objExcel.Cells(intRow, 1).Value & "---- 1"
+'    ElseIf ftp = 0 Or FTPS = 0 Or SFTP = 0 Then
+'        MsgBox objExcel.Cells(intRow, 1).Value & "---- 0"
+'    End If
+    
+    
 End If
 
 ''''''''''''''' Log Test
@@ -179,7 +208,7 @@ objFTPOutputFile.Close
 NextIteration:
 
 ' Close the ftp dat file
-objFile.Close
+'objFile.Close
 
 
 
