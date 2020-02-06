@@ -42,6 +42,7 @@ Set objFile = objFTPFSO.CreateTextFile(datFile, True)
 ' If Red Font, then just ignore and move to the next file (Red Font is Invalid ones from Process 1)
 If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
     testlog.Write "Error Occured for " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ")"
+    objFile.Close
     GoTo NextIteration
 End If
 
