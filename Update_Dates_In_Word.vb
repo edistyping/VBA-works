@@ -43,8 +43,13 @@ MAIN_PATH = Left(file_left, InStrRev(file_left, "\"))
 Dim file As String
 Dim oldFile As String
 
-' If font color is Red, then skip it. (Red indicates that the file was not found in Master file
-If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
+' Check if there is a file to send or if it's invalid (Red Font)
+If objExcel.Cells(intRow, 24).Value = "" Then
+    logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
+                  "     Filename: " & file_left & vbCrLf & _
+                  "     Error: There is No File to Send For this Record" & vbCrLf
+    GoTo NextIteration
+ElseIf objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
     logFile.Write "(" & (intRow - 1) & ") " & send_to & vbCrLf & _
                   "     Filename: " & file_left & vbCrLf & _
                   "     Error: This item will be skipped as it's determined Invalid... (Red Font)" & vbCrLf & _
