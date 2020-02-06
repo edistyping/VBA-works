@@ -1,6 +1,6 @@
 Sub ExecuteFTP()
 
-Set WShell = CreateObject("WScript.Shell")
+Set Wshell = CreateObject("WScript.Shell")
 Set objExcel = CreateObject("Excel.Application")
 Set objFTPOutput = CreateObject("Scripting.FileSystemObject")
 Set objFTPFSO = CreateObject("Scripting.FileSystemObject")
@@ -149,16 +149,24 @@ objFTPOutputFile.Close
 
 ' !!! TESTING section ending...
 '''''''''''''''''''''''''''''''''''''''''''''
+' Call Shell("C:\Users\ekim\Desktop\Projects\hello\WinSCP.com /ini=nul /script=C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat")
+  'Call Shell("C:\Users\ekim\Desktop\Projects\hello\WinSCP.com /ini=nul /command ""open wefjwf"" ")
+ 
+ 'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com")
 
-
+'C:\Users\ekim\AppData\Local\WinSCP.com
 ' if the server name is blank, do not ftp the file
 If Skip = "N" Then
     If ftp_mode = "FTP" Then
-        ftp = WShell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """", 0, True)
+        ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """", 0, True)
     ElseIf ftp_mode = "FTPS" Then
-        FTPS = WShell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, True)
+        FTPS = Wshell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, True)
     ElseIf ftp_mode = "SFTP" Then
-        SFTP = WShell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, True)
+        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /log=""" & logFile & """ & /script=""C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat""  ")
+        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /log=""" & logFile & """ & /command ""open sftp://pmftpmpa1FAKE:%2B4$3Uqa%40eku$wEswey$-R6get5$ZaSw4@gmmft.ext.gm.com:22""  ")
+        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
+        SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com & /script=""" & datFile & """ & /log=""" & logFile & """   ")
+
     End If
 End If
 
@@ -188,40 +196,44 @@ objExcel.Quit
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' Below are purely for Logging purpose
 ' take a look at the log file and check for errors
-Set objLogFile = objFTPOutput.OpenTextFile(logFile)
-logfileErrors = LCase(objLogFile.ReadAll)
-objLogFile.Close
-
 ' open the simple log file for writing
 Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
-
-
-' depending on what error is found, try to display the correct error message
-If InStr(logfileErrors, "530 login incorrect") >= 1 Or InStr(logfileErrors, "530 you aren't logged in") >= 1 Or InStr(logfileErrors, "service not available") >= 1 Or InStr(logfileErrors, "unable to authenticate") >= 1 Or InStr(logfileErrors, "login or password incorrect") >= 1 Then
-   objSimpleFile.Write "One or more of the client's has username/password problems."
-ElseIf InStr(logfileErrors, "file not found") >= 1 Or InStr(logfileErrors, "the system cannot find the file specified") >= 1 Or InStr(logfileErrors, "the system cannot find the path specified") >= 1 Then
-   objSimpleFile.Write "One or more of the FTP files could not be found."
-ElseIf InStr(logfileErrors, "unknown host") >= 1 Or InStr(logfileErrors, "connection failed") >= 1 Then
-    objSimpleFile.Write "One or more of the client's has something wrong with the server name."
-ElseIf InStr(logfileErrors, "can't change directory to") >= 1 Then
-    objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory."
-ElseIf InStr(logfileErrors, "network error") >= 1 Or InStr(logfileErrors, "ftp port did not open") >= 1 Or InStr(logfileErrors, "system error") >= 1 Then
-    objSimpleFile.Write "One or more client's had an unknown error."
-ElseIf InStr(logfileErrors, "exception") >= 1 Then
-    objSimpleFile.Write "Potential host key problem."
-End If
-
-' simplify log for monkeys
-
 
 ' read the full log file for error and add the line from this log to the simple log
 Set objLogFile = objFTPOutput.OpenTextFile(logFile)
 
 Do Until objLogFile.AtEndOfStream
- strLine = LCase(objLogFile.ReadLine)
- If InStr(strLine, "530 login incorrect") >= 1 Or InStr(strLine, "530 you aren't logged in") >= 1 Or InStr(strLine, "service not available") >= 1 Or InStr(strLine, "unable to authenticate") >= 1 Or InStr(strLine, "login or password incorrect") >= 1 Or InStr(strLine, "file not found") >= 1 Or InStr(strLine, "the system cannot find the file specified") >= 1 Or InStr(strLine, "the system cannot find the path specified") >= 1 Or InStr(strLine, "unknown host") >= 1 Or InStr(strLine, "connection failed") >= 1 Or InStr(strLine, "can't change directory to") >= 1 Or InStr(strLine, "network error") >= 1 Or InStr(strLine, "ftp port did not open") >= 1 Or InStr(strLine, "system error") >= 1 Or InStr(strLine, "exception") >= 1 Then
- objSimpleFile.Write strLine & vbCrLf
- End If
+    strLine = LCase(objLogFile.ReadLine)
+    
+    If InStr(strLine, "now processing") >= 1 Then
+        objSimpleFile.Write "***We are now processing a file" & vbCrLf
+    End If
+    
+    ' Provide (send_to, Server, Username/Password, Binary type, Put statement)
+    
+    
+    
+    ' depending on what error is found, try to display the correct error message
+    If InStr(strLine, "530 login incorrect") >= 1 Or InStr(strLine, "530 you aren't logged in") >= 1 Or InStr(strLine, "service not available") >= 1 Or InStr(strLine, "unable to authenticate") >= 1 Or InStr(strLine, "login or password incorrect") >= 1 Then
+       objSimpleFile.Write "One or more of the client's has username/password problems." & vbCrLf
+    ElseIf InStr(strLine, "file not found") >= 1 Or InStr(strLine, "the system cannot find the file specified") >= 1 Or InStr(strLine, "the system cannot find the path specified") >= 1 Then
+       objSimpleFile.Write "One or more of the FTP files could not be found." & vbCrLf
+    ElseIf InStr(strLine, "unknown host") >= 1 Or InStr(strLine, "connection failed") >= 1 Then
+        objSimpleFile.Write "One or more of the client's has something wrong with the server name." & vbCrLf
+    ElseIf InStr(strLine, "can't change directory to") >= 1 Then
+        objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory." & vbCrLf
+    ElseIf InStr(strLine, "network error") >= 1 Or InStr(strLine, "ftp port did not open") >= 1 Or InStr(strLine, "system error") >= 1 Then
+        objSimpleFile.Write "One or more client's had an unknown error." & vbCrLf
+    ElseIf InStr(strLine, "exception") >= 1 Then
+        objSimpleFile.Write "Potential host key problem." & vbCrLf
+    End If
+    
+    If InStr(strLine, "finished processing") >= 1 Then
+        objSimpleFile.Write "***Processing finished for the file..." & vbCrLf & vbCrLf
+    End If
+    
+
+
 Loop
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
