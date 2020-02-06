@@ -19,12 +19,15 @@ objFTPOutputFile.Close
 ' path to simple output log file
 simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log"
 
-''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''
+' Ed's log
 Set objOutputTest = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
 testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\fulltest3.log"
-Set testlog = objOutputTest.CreateTextFile(testlogFileName, True)
-testlog.Write "Process 3   -   Datetime of Log Creation: " & Now() & vbCrLf & _
+Set objTestLog = objOutputTest.CreateTextFile(testlogFileName, True)
+objTestLog.Write "Process 3   -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
+''''''''''''''''''''''''''''''''''
 
 
 ' path to dat file
@@ -41,7 +44,7 @@ Set objFile = objFTPFSO.CreateTextFile(datFile, True)
 
 ' If Red Font, then just ignore and move to the next file (Red Font is Invalid ones from Process 1)
 If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
-    testlog.Write "Error Occured for " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ")"
+    objTestLog.Write "Error Occured for " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ") - " & Trim(objExcel.Cells(intRow, 21).Value) & vbCrLf
     objFile.Close
     GoTo NextIteration
 End If
@@ -149,8 +152,9 @@ End If
 ''''' Since objFTPOutputFile was closed earlier, we need to open the logFile again
 ''''''''''''''' Log Test
 Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
-objFTPOutputFile.Write "***Now processing: " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ")" & vbCrLf
+objFTPOutputFile.Write "***Now processing: " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ") - " & Trim(objExcel.Cells(intRow, 21).Value) & vbCrLf
 objFTPOutputFile.Close
+
 
 ' !!! TESTING section ending...
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -173,30 +177,14 @@ objFile.Close
    
 
     If ftp_mode = "FTP" Then
-        ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """ ", 1, True)
+        ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """ ", 0, True)
     ElseIf ftp_mode = "FTPS" Then
-        'FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /int=nul /script=C:/Users/ekim/Desktop/Projects/hello/ftpTestFiles/ftpcmd.dat", 1, True)  ' Good
-        
-        ' it stopped working all of sudden wtf. Investigate
-' (OG)  FTPS = WShell.Run("WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 0, true)
-         FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 1, True)  ' Good
+         FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 0, True)  ' Good
                 
     ElseIf ftp_mode = "SFTP" Then
         'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
-        SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ & /log=""" & logFile & """ ", 1, True)
+        SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ & /log=""" & logFile & """ ", 0, True)
     End If
-'
-'    MsgBox "ftp: " & ftp & vbCrLf & _
-'           "FTPS: " & FTPS & vbCrLf & _
-'           "SFTP: " & SFTP & vbCrLf
-'
-'
-'    If ftp = 1 Or FTPS = 1 Or SFTP = 1 Then
-'        MsgBox objExcel.Cells(intRow, 1).Value & "---- 1"
-'    ElseIf ftp = 0 Or FTPS = 0 Or SFTP = 0 Then
-'        MsgBox objExcel.Cells(intRow, 1).Value & "---- 0"
-'    End If
-    
     
 End If
 
@@ -206,9 +194,14 @@ objFTPOutputFile.Write "***Finished Processing..." & vbCrLf & vbCrLf
 objFTPOutputFile.Close
 ''''''''''!@#@!$#$@$!#$@#@!#@!$@!$@!$@!$
 
+NextIteration:
+
+' Close the ftp dat file
+'objFile.Close
+
+
 
 ' Onto the next record in ITEMin
-NextIteration:
 intRow = intRow + 1
 Loop
 
@@ -226,35 +219,53 @@ Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
 ' read the full log file for error and add the line from this log to the simple log
 Set objLogFile = objFTPOutput.OpenTextFile(logFile)
 
+' These are for Log
+Dim fileName As String
+Dim ftpType As String
+
 Do Until objLogFile.AtEndOfStream
     strLine = LCase(objLogFile.ReadLine)
     
     If InStr(strLine, "now processing") >= 1 Then
         objSimpleFile.Write "***We are now processing a file" & vbCrLf
+        
+        objTestLog.Write "***Reading Line strLine(~5): " & Mid(strLine, InStr(strLine, ":") + 2) & vbCrLf ' Test File
+        ftpType = Mid(strLine, InStrRev(strLine, "-") + 2)
     End If
+    
+    If ftpType = "ftp" Then
+        If InStr(strLine, )
+    
+    ElseIf ftpType = "ftps" Then
+    
+    ElseIf ftpType = "sftp" Then
+    
+    End If
+    
+    
     
     ' Provide (send_to, Server, Username/Password, Binary type, Put statement)
     
     
     
     ' depending on what error is found, try to display the correct error message
-    If InStr(strLine, "530 login incorrect") >= 1 Or InStr(strLine, "530 you aren't logged in") >= 1 Or InStr(strLine, "service not available") >= 1 Or InStr(strLine, "unable to authenticate") >= 1 Or InStr(strLine, "login or password incorrect") >= 1 Then
-       objSimpleFile.Write "One or more of the client's has username/password problems." & vbCrLf
-    ElseIf InStr(strLine, "file not found") >= 1 Or InStr(strLine, "the system cannot find the file specified") >= 1 Or InStr(strLine, "the system cannot find the path specified") >= 1 Then
-       objSimpleFile.Write "One or more of the FTP files could not be found." & vbCrLf
-    ElseIf InStr(strLine, "unknown host") >= 1 Or InStr(strLine, "connection failed") >= 1 Then
-        objSimpleFile.Write "One or more of the client's has something wrong with the server name." & vbCrLf
-    ElseIf InStr(strLine, "can't change directory to") >= 1 Then
-        objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory." & vbCrLf
-    ElseIf InStr(strLine, "network error") >= 1 Or InStr(strLine, "ftp port did not open") >= 1 Or InStr(strLine, "system error") >= 1 Then
-        objSimpleFile.Write "One or more client's had an unknown error." & vbCrLf
-    ElseIf InStr(strLine, "exception") >= 1 Then
-        objSimpleFile.Write "Potential host key problem." & vbCrLf
-    End If
-    
-    If InStr(strLine, "finished processing") >= 1 Then
-        objSimpleFile.Write "***Processing finished for the file..." & vbCrLf & vbCrLf
-    End If
+'    If InStr(strLine, "530 login incorrect") >= 1 Or InStr(strLine, "530 you aren't logged in") >= 1 Or InStr(strLine, "service not available") >= 1 Or InStr(strLine, "unable to authenticate") >= 1 Or InStr(strLine, "login or password incorrect") >= 1 Then
+'       objSimpleFile.Write "One or more of the client's has username/password problems." & vbCrLf
+'    ElseIf InStr(strLine, "file not found") >= 1 Or InStr(strLine, "the system cannot find the file specified") >= 1 Or InStr(strLine, "the system cannot find the path specified") >= 1 Then
+'       objSimpleFile.Write "One or more of the FTP files could not be found." & vbCrLf
+'    ElseIf InStr(strLine, "unknown host") >= 1 Or InStr(strLine, "connection failed") >= 1 Then
+'        objSimpleFile.Write "One or more of the client's has something wrong with the server name." & vbCrLf
+'    ElseIf InStr(strLine, "can't change directory to") >= 1 Then
+'        objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory." & vbCrLf
+'    ElseIf InStr(strLine, "network error") >= 1 Or InStr(strLine, "ftp port did not open") >= 1 Or InStr(strLine, "system error") >= 1 Then
+'        objSimpleFile.Write "One or more client's had an unknown error." & vbCrLf
+'    ElseIf InStr(strLine, "exception") >= 1 Then
+'        objSimpleFile.Write "Potential host key problem." & vbCrLf
+'    End If
+'
+'    If InStr(strLine, "finished processing") >= 1 Then
+'        objSimpleFile.Write "***Processing finished for the file..." & vbCrLf & vbCrLf
+'    End If
     
 
 
