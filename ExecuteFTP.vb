@@ -206,15 +206,9 @@ objFTPOutputFile.Write "***Finished Processing..." & vbCrLf & vbCrLf
 objFTPOutputFile.Close
 ''''''''''!@#@!$#$@$!#$@#@!#@!$@!$@!$@!$
 
-NextIteration:
-
-' Close the ftp dat file
-'objFile.Close
-
-
-
 
 ' Onto the next record in ITEMin
+NextIteration:
 intRow = intRow + 1
 Loop
 

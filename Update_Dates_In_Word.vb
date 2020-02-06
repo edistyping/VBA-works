@@ -97,10 +97,10 @@ wdApp.Visible = True
 With wdApp.ActiveDocument.Content.Find ' Note: Saw some people using Content instead of Range
     .ClearFormatting ' Clear any existing value for Find dialog box
     .Replacement.ClearFormatting ' Clear any existing value
-    '.Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
-    .Text = "testbaby"
+    .Text = "([0-9]{4})[-]([0-9]{1,2})[-]([0-9]{1,2})"
+    '.Text = "testbaby"
     .MatchWildcards = True
-    .Replacement.Text = "testbaby" ' new_fileDate ' Change .Text to what's provided here
+    .Replacement.Text = "new_fileDate" ' new_fileDate ' Change .Text to what's provided here
     '.Execute Replace:=2 ' Apply for Replace All
 End With
  
