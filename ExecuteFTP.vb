@@ -222,54 +222,79 @@ Set objLogFile = objFTPOutput.OpenTextFile(logFile)
 ' These are for Log
 Dim fileName As String
 Dim ftpType As String
+Dim prevLine As String
+Dim logRow As Integer
+Dim logSkip As Boolean
+logRow = 1
+prevLine = "zero"
+logSkip = False
 
 Do Until objLogFile.AtEndOfStream
+    
     strLine = LCase(objLogFile.ReadLine)
     
+    ' Check the FTP Type for accurate logging purpose
     If InStr(strLine, "now processing") >= 1 Then
         objSimpleFile.Write "***We are now processing a file" & vbCrLf
         
+        objTestLog.Write vbCrLf & vbCrLf
+        objTestLog.Write logRow & "-"
         objTestLog.Write "***Reading Line strLine(~5): " & Mid(strLine, InStr(strLine, ":") + 2) & vbCrLf ' Test File
         ftpType = Mid(strLine, InStrRev(strLine, "-") + 2)
+        logSkip = False
+    'ElseIf InStr(strLine, "finished processing") >= 1 Then ' I don't think this is needed
+        'ftpType = ""
     End If
-    
-    If ftpType = "ftp" Then
-        If InStr(strLine, )
-    
-    ElseIf ftpType = "ftps" Then
-    
+        
+    ' For corresponding FTP type, process logging
+    If ftpType = "ftp" And logSkip = False Then
+        If InStr(strLine, "unknown host") >= 1 Then
+            objTestLog.Write "  Error: Unknown or Invalid Host Address. Please Check Again" & vbCrLf
+            logSkip = True
+            ' Perhaps just skip out of this one? (as in go to ***Finished Processing line?)
+        ElseIf InStr(strLine, "530") >= 1 Then
+            objTestLog.Write "  Error: Wrong ID or Password! Please Check Again" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "226") >= 1 Then
+            objTestLog.Write "  Success: File has been successfully transferred" & vbCrLf
+            logSkip = True
+        End If
+    ElseIf ftpType = "ftps" And logSkip = False Then
+        If InStr(strLine, "TLS connection established") >= 1 Then
+            objTestLog.Write "  Error: Unknown or Invalid Host Address. Please Check Again" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "connection failed") >= 1 Then
+            objTestLog.Write "  Error: Connection Failed. Please Check the FTP Address or Port" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "530 login or password incorrect!") >= 1 Then
+            objTestLog.Write "  Error: Login or Password is Incorrect! Please Check Again1" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "transfer done") >= 1 Then
+            objTestLog.Write "  Success: File is successfully transferred" & vbCrLf
+            logSkip = True
+        End If
     ElseIf ftpType = "sftp" Then
-    
+        If InStr(strLine, "access granted") >= 1 Then
+            objTestLog.Write "  Success: Connection is Successfully Made" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "the system cannot find the file specified") >= 1 Then
+            objTestLog.Write "  Error: File to Send Was Not Found" & vbCrLf
+            logSkip = True
+        ElseIf InStr(strLine, "password authentication failed") >= 1 Then
+            objTestLog.Write "  Error: Login or Password is Incorrect! Please Check Again1" & vbCrLf
+            logSkip = True
+        ElseIf InStr(prevLine, "looking up host") >= 1 And InStr(strLine, "finished processing") >= 1 Then '(Looking up host ...)'s next line is (***finished processing...) then no connection is made
+            objTestLog.Write "  Error: Connection wasn't Made" & vbCrLf
+            logSkip = True
+        End If
     End If
     
+    prevLine = strLine
+    logRow = logRow + 1
     
-    
-    ' Provide (send_to, Server, Username/Password, Binary type, Put statement)
-    
-    
-    
-    ' depending on what error is found, try to display the correct error message
-'    If InStr(strLine, "530 login incorrect") >= 1 Or InStr(strLine, "530 you aren't logged in") >= 1 Or InStr(strLine, "service not available") >= 1 Or InStr(strLine, "unable to authenticate") >= 1 Or InStr(strLine, "login or password incorrect") >= 1 Then
-'       objSimpleFile.Write "One or more of the client's has username/password problems." & vbCrLf
-'    ElseIf InStr(strLine, "file not found") >= 1 Or InStr(strLine, "the system cannot find the file specified") >= 1 Or InStr(strLine, "the system cannot find the path specified") >= 1 Then
-'       objSimpleFile.Write "One or more of the FTP files could not be found." & vbCrLf
-'    ElseIf InStr(strLine, "unknown host") >= 1 Or InStr(strLine, "connection failed") >= 1 Then
-'        objSimpleFile.Write "One or more of the client's has something wrong with the server name." & vbCrLf
-'    ElseIf InStr(strLine, "can't change directory to") >= 1 Then
-'        objSimpleFile.Write "One or more of the client's has something wrong with the remote server directory." & vbCrLf
-'    ElseIf InStr(strLine, "network error") >= 1 Or InStr(strLine, "ftp port did not open") >= 1 Or InStr(strLine, "system error") >= 1 Then
-'        objSimpleFile.Write "One or more client's had an unknown error." & vbCrLf
-'    ElseIf InStr(strLine, "exception") >= 1 Then
-'        objSimpleFile.Write "Potential host key problem." & vbCrLf
-'    End If
-'
-'    If InStr(strLine, "finished processing") >= 1 Then
-'        objSimpleFile.Write "***Processing finished for the file..." & vbCrLf & vbCrLf
-'    End If
-    
-
-
 Loop
+
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ToEnd:
