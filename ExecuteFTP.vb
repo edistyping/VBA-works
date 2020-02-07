@@ -167,39 +167,47 @@ objFTPOutputFile.Close
 ' if the server name is blank, do not ftp the file
 If Skip = "N" Then
     
-    ftp = 333
-    FTPS = 333
-    SFTP = 333
+' Just initialized with temp value for us to check response/return value from FTP
+ftp = 999
+FTPS = 999
+SFTP = 999
 
-' Close the ftp dat file   !!! This was hte issue of FTPS stuff. I guess since the datFile was still opened and connetcted _
-objFile variable, it's causing problem
+' Close the ftp dat file (Needed before we use its associated datFile in Run() below
 objFile.Close
    
+Dim gotFTPRespond As Boolean
+gotFTPRespond = False
 
     If ftp_mode = "FTP" Then
         ftp = Wshell.Run("%comspec% /c ftp -d -i -s:""" & datFile & """>>""" & logFile & """ ", 0, True)
+        gotFTPRespond = True
     ElseIf ftp_mode = "FTPS" Then
-         FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 0, True)  ' Good
-                
+        FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 0, True)  ' Good
+        gotFTPRespond = True
     ElseIf ftp_mode = "SFTP" Then
         'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
         SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ & /log=""" & logFile & """ ", 0, True)
+        gotFTPRespond = True
     End If
+       
     
 End If
 
 ''''''''''''''' Log Test
+
+' For Logging...
 Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
+If ftp <> 999 And gotFTPRespond = True Then
+    objFTPOutputFile.Write "***Return Code: " & ftp & vbCrLf
+ElseIf FTPS <> 999 And gotFTPRespond = True Then
+    objFTPOutputFile.Write "***Return Code: " & FTPS & vbCrLf
+ElseIf SFTP <> 999 And gotFTPRespond = True Then
+    objFTPOutputFile.Write "***Return Code: " & SFTP & vbCrLf
+End If
 objFTPOutputFile.Write "***Finished Processing..." & vbCrLf & vbCrLf
 objFTPOutputFile.Close
-''''''''''!@#@!$#$@$!#$@#@!#@!$@!$@!$@!$
 
 NextIteration:
-
-' Close the ftp dat file
-'objFile.Close
-
-
 
 ' Onto the next record in ITEMin
 intRow = intRow + 1
@@ -235,10 +243,7 @@ Do Until objLogFile.AtEndOfStream
     
     ' Check the FTP Type for accurate logging purpose
     If InStr(strLine, "now processing") >= 1 Then
-        objSimpleFile.Write "***We are now processing a file" & vbCrLf
-        
-        objTestLog.Write vbCrLf & vbCrLf
-        objTestLog.Write logRow & "-"
+        objTestLog.Write vbCrLf
         objTestLog.Write "***Reading Line strLine(~5): " & Mid(strLine, InStr(strLine, ":") + 2) & vbCrLf ' Test File
         ftpType = Mid(strLine, InStrRev(strLine, "-") + 2)
         logSkip = False
@@ -247,7 +252,7 @@ Do Until objLogFile.AtEndOfStream
     End If
         
     ' For corresponding FTP type, process logging
-    If ftpType = "ftp" And logSkip = False Then
+    If ftpType = "ftp" And logSkip = False Then ' For FTP
         If InStr(strLine, "unknown host") >= 1 Then
             objTestLog.Write "  Error: Unknown or Invalid Host Address. Please Check Again" & vbCrLf
             logSkip = True
@@ -257,9 +262,8 @@ Do Until objLogFile.AtEndOfStream
             logSkip = True
         ElseIf InStr(strLine, "226") >= 1 Then
             objTestLog.Write "  Success: File has been successfully transferred" & vbCrLf
-            logSkip = True
         End If
-    ElseIf ftpType = "ftps" And logSkip = False Then
+    ElseIf ftpType = "ftps" And logSkip = False Then ' For FTPS
         If InStr(strLine, "TLS connection established") >= 1 Then
             objTestLog.Write "  Error: Unknown or Invalid Host Address. Please Check Again" & vbCrLf
             logSkip = True
@@ -270,13 +274,11 @@ Do Until objLogFile.AtEndOfStream
             objTestLog.Write "  Error: Login or Password is Incorrect! Please Check Again1" & vbCrLf
             logSkip = True
         ElseIf InStr(strLine, "transfer done") >= 1 Then
-            objTestLog.Write "  Success: File is successfully transferred" & vbCrLf
-            logSkip = True
+            objTestLog.Write "  Success: File is Successfully Transferred" & vbCrLf
         End If
-    ElseIf ftpType = "sftp" Then
-        If InStr(strLine, "access granted") >= 1 Then
-            objTestLog.Write "  Success: Connection is Successfully Made" & vbCrLf
-            logSkip = True
+    ElseIf ftpType = "sftp" And logSkip = False Then ' For SFTP
+        If InStr(strLine, "access granted") >= 1 Then ' Eventually change this to File Transffered instead of access granted
+            objTestLog.Write "  Note: Connection is Successfully Made! Now, Attempting to Transfer the File..." & vbCrLf
         ElseIf InStr(strLine, "the system cannot find the file specified") >= 1 Then
             objTestLog.Write "  Error: File to Send Was Not Found" & vbCrLf
             logSkip = True
@@ -286,6 +288,8 @@ Do Until objLogFile.AtEndOfStream
         ElseIf InStr(prevLine, "looking up host") >= 1 And InStr(strLine, "finished processing") >= 1 Then '(Looking up host ...)'s next line is (***finished processing...) then no connection is made
             objTestLog.Write "  Error: Connection wasn't Made" & vbCrLf
             logSkip = True
+        ElseIf InStr(prevLine, "transfer done") >= 1 And InStr(strLine, "transfer successfully") >= 1 Then ' In Worst scenario, use "Return Code" to find Success/Fail -> Actually maybe not. FTP one returned 0 on Fail... wat
+            objTestLog.Write "  Success: File is Successfully Transferred" & vbCrLf
         End If
     End If
     
@@ -303,5 +307,7 @@ ToEnd:
 MsgBox "Process 3 is Ended"
 
 End Sub
+
+
 
 
