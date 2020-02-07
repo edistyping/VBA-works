@@ -23,9 +23,9 @@ Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest2.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull2.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Process 2    -   Datetime babyyy: " & Now() & vbCrLf & _
+logFile.Write "Process 2: Update Needed Word Files' Date    -   Datetime babyyy: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 
 ' loop through each row of the excel file
@@ -166,7 +166,7 @@ logFile.Write vbCrLf & vbCrLf
 intRow = intRow + 1
 Loop
 
-logFile.Write "---------------------------------------------------------" & vbCrLf
+logFile.Write "-------------------------------------------------------------" & vbCrLf
 logFile.Write "Total Items Checked: " & (intRow - 2) & vbCrLf & _
               "New Files Created: " & intSuccess & vbCrLf
 

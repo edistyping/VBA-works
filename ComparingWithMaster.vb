@@ -38,9 +38,9 @@ Set objWorkbook2 = objExcel2.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hell
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\fulltest1.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull1.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
-logFile.Write "Process 1   -   Datetime of Log Creation: " & Now() & vbCrLf & _
+logFile.Write "Process 1: Comparing ITEMin.xlsx with Master.xlsx -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 
 ' start at the second row, ie, not the column header
@@ -208,7 +208,8 @@ Loop
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ' Output the Success/Failure Rate to Log File
-logFile.Write "---------------------------------------------------------" & vbCrLf
+
+logFile.Write "-------------------------------------------------------------" & vbCrLf
 logFile.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
        "Success: " & CStr(intSuccess) & vbCrLf & _
        "Failure: " & CStr(intRow - 2 - intSuccess) & vbCrLf & _

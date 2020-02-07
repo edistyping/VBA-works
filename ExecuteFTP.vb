@@ -6,10 +6,10 @@ Set objFTPOutput = CreateObject("Scripting.FileSystemObject")
 Set objFTPFSO = CreateObject("Scripting.FileSystemObject")
 
 ' path to the excel file
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
+Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx") ' Changed this
 
 ' path to full output log file
-logFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\full3.log"
+logFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\full3.log" ' Changed this
 
 ' clear the ftp output file
 Set objFTPOutputFile = objFTPOutput.CreateTextFile(logFile, True)
@@ -17,13 +17,13 @@ objFTPOutputFile.Write Now() & vbCrLf
 objFTPOutputFile.Close
 
 ' path to simple output log file
-simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log"
+simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log" ' Can remove since we have now testlogFileName
 
 
 '''''''''''''''''''''''''''''''''''''''
 ' Ed's log
-Set objOutputTest = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\fulltest3.log"
+Set objOutputTest = CreateObject("Scripting.FileSystemObject") ' ' Changed this
+testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull3.log"
 Set objTestLog = objOutputTest.CreateTextFile(testlogFileName, True)
 objTestLog.Write "Process 3: Sending the File via FTP - Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
@@ -31,7 +31,7 @@ objTestLog.Write "Process 3: Sending the File via FTP - Datetime of Log Creation
 
 
 ' path to dat file
-datFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat"
+datFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat" ' Changed this
       
 ' start at the second row, ie, not the column header
 intRow = 2
