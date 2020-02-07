@@ -25,7 +25,7 @@ simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log"
 Set objOutputTest = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
 testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\fulltest3.log"
 Set objTestLog = objOutputTest.CreateTextFile(testlogFileName, True)
-objTestLog.Write "Process 3   -   Datetime of Log Creation: " & Now() & vbCrLf & _
+objTestLog.Write "Process 3: Sending the File via FTP - Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
 ''''''''''''''''''''''''''''''''''
 
@@ -35,6 +35,9 @@ datFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat"
       
 ' start at the second row, ie, not the column header
 intRow = 2
+
+Dim intSuccess As Integer
+intSuccess = 0
 
 ' Check each record from the ITEMin.xlsx until it finds a blank row
 Do Until objExcel.Cells(intRow, 1).Value = ""
@@ -244,7 +247,7 @@ Do Until objLogFile.AtEndOfStream
     ' Check the FTP Type for accurate logging purpose
     If InStr(strLine, "now processing") >= 1 Then
         objTestLog.Write vbCrLf
-        objTestLog.Write "***Reading Line strLine(~5): " & Mid(strLine, InStr(strLine, ":") + 2) & vbCrLf ' Test File
+        objTestLog.Write "***Checking for the following: " & Mid(strLine, InStr(strLine, ":") + 2) & vbCrLf ' Test File
         ftpType = Mid(strLine, InStrRev(strLine, "-") + 2)
         logSkip = False
     'ElseIf InStr(strLine, "finished processing") >= 1 Then ' I don't think this is needed
@@ -261,7 +264,8 @@ Do Until objLogFile.AtEndOfStream
             objTestLog.Write "  Error: Wrong ID or Password! Please Check Again" & vbCrLf
             logSkip = True
         ElseIf InStr(strLine, "226") >= 1 Then
-            objTestLog.Write "  Success: File has been successfully transferred" & vbCrLf
+            objTestLog.Write "  Success: File is Successfully Transferred" & vbCrLf
+            intSuccess = intSuccess + 1
         End If
     ElseIf ftpType = "ftps" And logSkip = False Then ' For FTPS
         If InStr(strLine, "TLS connection established") >= 1 Then
@@ -275,6 +279,7 @@ Do Until objLogFile.AtEndOfStream
             logSkip = True
         ElseIf InStr(strLine, "transfer done") >= 1 Then
             objTestLog.Write "  Success: File is Successfully Transferred" & vbCrLf
+            intSuccess = intSuccess + 1
         End If
     ElseIf ftpType = "sftp" And logSkip = False Then ' For SFTP
         If InStr(strLine, "access granted") >= 1 Then ' Eventually change this to File Transffered instead of access granted
@@ -290,6 +295,7 @@ Do Until objLogFile.AtEndOfStream
             logSkip = True
         ElseIf InStr(prevLine, "transfer done") >= 1 And InStr(strLine, "transfer successfully") >= 1 Then ' In Worst scenario, use "Return Code" to find Success/Fail -> Actually maybe not. FTP one returned 0 on Fail... wat
             objTestLog.Write "  Success: File is Successfully Transferred" & vbCrLf
+            intSuccess = intSuccess + 1
         End If
     End If
     
@@ -297,9 +303,18 @@ Do Until objLogFile.AtEndOfStream
     logRow = logRow + 1
     
 Loop
-
-
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+' Last Line
+' read the full log file for error and add the line from this log to the simple log
+'Set objTestLog = objOutputTest.CreateTextFile(testlogFileName, True)
+objTestLog.Write vbCrLf & "-------------------------------------------------------------" & vbCrLf
+objTestLog.Write "Total Record: " & CStr(intRow - 2) & vbCrLf & _
+       "Success: " & CStr(intSuccess) & vbCrLf & _
+       "Fails: " & CStr(intRow - 2 - intSuccess) & vbCrLf
+objTestLog.Close
+
 
 ToEnd:
 ' Close the excel file
