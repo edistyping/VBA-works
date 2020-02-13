@@ -5,11 +5,22 @@ Set objExcel = CreateObject("Excel.Application")
 Set objFTPOutput = CreateObject("Scripting.FileSystemObject")
 Set objFTPFSO = CreateObject("Scripting.FileSystemObject")
 
-' path to the excel file
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx") ' Changed this
+
+
+' Prepare and set the path to the excel file
+Dim inputFilePath As String
+Dim fileFound As Boolean
+fileFound = True
+Call selectExcelFile(fileFound, inputFilePath)
+If fileFound = False Then
+    MsgBox "Error: No or Invalid File was Selected!"
+    Exit Sub
+End If
+Set objWorkbook = objExcel.Workbooks.Open(inputFilePath)
+
 
 ' path to full output log file
-logFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\full3.log" ' Changed this
+logFile = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\full3.log" ' Changed this
 
 ' clear the ftp output file
 Set objFTPOutputFile = objFTPOutput.CreateTextFile(logFile, True)
@@ -17,13 +28,13 @@ objFTPOutputFile.Write Now() & vbCrLf
 objFTPOutputFile.Close
 
 ' path to simple output log file
-simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\simple3.log" ' Can remove since we have now testlogFileName
+simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\simple3.log" ' Can remove since we have now testlogFileName
 
 
 '''''''''''''''''''''''''''''''''''''''
 ' Ed's log
 Set objOutputTest = CreateObject("Scripting.FileSystemObject") ' ' Changed this
-testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull3.log"
+testlogFileName = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\logFile3.log"
 Set objTestLog = objOutputTest.CreateTextFile(testlogFileName, True)
 objTestLog.Write "Process 3: Sending the File via FTP - Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
@@ -31,7 +42,7 @@ objTestLog.Write "Process 3: Sending the File via FTP - Datetime of Log Creation
 
 
 ' path to dat file
-datFile = "C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat" ' Changed this
+datFile = "C:\Users\ekim\Desktop\Projects\hello\Simulation\ftpcmd.dat" ' Changed this
       
 ' start at the second row, ie, not the column header
 intRow = 2
@@ -299,9 +310,11 @@ Do Until objLogFile.AtEndOfStream
         End If
     End If
     
+    
+' To the next loop!
     prevLine = strLine
     logRow = logRow + 1
-    
+    objTestLog.Write vbCrLf
 Loop
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -324,5 +337,30 @@ MsgBox "Process 3 is Ended"
 End Sub
 
 
+
+
+
+Function selectExcelFile(fileFound As Boolean, FileFullPath As String)
+
+' Make this into a function to pass around selectedFilename
+MsgBox "Please Select the input file named ITEMin.xlsx"
+With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = False
+    .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+    .Show
+        
+    'Store in fullpath variable
+    If (.SelectedItems.Count = 0) Then
+        fileFound = False
+        '// dialog dismissed with no selection
+    Else
+        FileFullPath = .SelectedItems(1)
+        fileFound = True
+    End If
+    
+    'FileFullPath = .SelectedItems.Item(1)
+End With
+    
+End Function
 
 

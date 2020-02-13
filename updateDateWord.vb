@@ -19,11 +19,19 @@ Dim intRow As Integer
 
 ' Open the ITEMin Excel file to fetch the updated Date
 Set objExcel = CreateObject("Excel.Application")
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
+Dim inputFilePath As String
+Dim fileFound As Boolean
+fileFound = True
+Call selectExcelFile(fileFound, inputFilePath)
+If fileFound = False Then
+    MsgBox "Error: No or Invalid File was Selected!"
+    Exit Sub
+End If
+Set objWorkbook = objExcel.Workbooks.Open(inputFilePath)
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull2.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\Simulation\logs\logFile2.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
 logFile.Write "Process 2: Update Needed Word Files' Date    -   Datetime babyyy: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
@@ -192,3 +200,28 @@ Function makeDirectory(strDir As String)
     
 End Function
 
+
+
+
+Function selectExcelFile(fileFound As Boolean, FileFullPath As String)
+
+' Make this into a function to pass around selectedFilename
+MsgBox "Please Select the input file named ITEMin.xlsx"
+With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = False
+    .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+    .Show
+        
+    'Store in fullpath variable
+    If (.SelectedItems.Count = 0) Then
+        fileFound = False
+        '// dialog dismissed with no selection
+    Else
+        FileFullPath = .SelectedItems(1)
+        fileFound = True
+    End If
+    
+    'FileFullPath = .SelectedItems.Item(1)
+End With
+    
+End Function

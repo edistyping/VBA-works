@@ -28,17 +28,30 @@ Dim keepSearching As Boolean
 Set objExcel = CreateObject("Excel.Application")
 Set objExcel2 = CreateObject("Excel.Application")
 
-' For testing
-'objExcel.Visible = True
-'objExcel2.Visible = True
+
+''''''''''''''''''''''''
+' Allow Users to select the File
+Dim inputFilePath As String
+Dim inputMasterPath As String
+Dim fileFound As Boolean
+fileFound = True
+Call selectExcelFile(fileFound, inputFilePath, inputMasterPath)
+
+' If No File, then Exit
+If fileFound = False Then
+    MsgBox "Error: No or Invalid File was Selected!"
+    Exit Sub
+End If
 
 ' path to the excel file
-Set objWorkbook = objExcel.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\ITEMinTest.xlsx")
-Set objWorkbook2 = objExcel2.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\MASTERTEST2.xlsx")
+Set objWorkbook = objExcel.Workbooks.Open(inputFilePath)
+Set objWorkbook2 = objExcel2.Workbooks.Open(inputMasterPath)
+
+'Set objWorkbook2 = objExcel2.Workbooks.Open("C:\Users\ekim\Desktop\Projects\hello\Simulation\MASTERTEST(SIMULATION).xlsx")
 
 ' Log file stuffs - Initially create/clear it
 Set objOutput = CreateObject("Scripting.FileSystemObject") ' changed from objFTPOutput to objOutput
-logFileName = "C:\Users\ekim\Desktop\Projects\hello\logs\Edfull1.log"
+logFileName = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\logFile1.log"
 Set logFile = objOutput.CreateTextFile(logFileName, True)
 logFile.Write "Process 1: Comparing ITEMin.xlsx with Master.xlsx -   Datetime of Log Creation: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
@@ -226,6 +239,64 @@ objWorkbook2.Close saveChanges:=True
 objExcel2.Quit
 
 End Sub
+
+
+
+Function selectExcelFile(fileFound As Boolean, FileFullPath As String, MasterFullPath As String)
+
+'''''''''
+' Testing here. Pop-Up display to select a File (This will be used to select ITEMin.xlsx)
+' Make this into a function to pass around selectedFilename
+MsgBox "Please select a ITEMin.xlsx file"
+With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = False
+    .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+    .Show
+        
+    'Store in fullpath variable
+    If (.SelectedItems.Count = 0) Then
+        fileFound = False
+        Exit Function
+    Else
+        FileFullPath = .SelectedItems(1)
+        fileFound = True
+    End If
+End With
+
+ 'It's a good idea to still check if the file type selected is accurate.
+If InStr(FileFullPath, ".xls") >= 1 Or InStr(FileFullPath, ".xlsx") >= 1 Or InStr(FileFullPath, ".xlsm") >= 1 Then
+
+Else
+    MsgBox "File is Not an Excel File..."
+    Exit Function
+End If
+
+MsgBox "Next, please select a Master.xlsx file"
+With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = False
+    .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls; *.xlsb", 1
+    .Show
+        
+    'Store in fullpath variable
+    If (.SelectedItems.Count = 0) Then
+        fileFound = False
+        Exit Function
+    Else
+        MasterFullPath = .SelectedItems(1)
+        fileFound = True
+    End If
+End With
+
+ 'It's a good idea to still check if the file type selected is accurate.
+If InStr(MasterFullPath, ".xls") >= 1 Or InStr(MasterFullPath, ".xlsx") >= 1 Or InStr(MasterFullPath, ".xlsm") >= 1 Then
+    
+Else
+    MsgBox "There is an issue with Master File"
+    Exit Function
+End If
+''''''''''''''
+    
+End Function
 
 
 
