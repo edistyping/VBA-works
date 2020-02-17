@@ -1,4 +1,4 @@
-Sub ExecuteFTP()
+Sub c_ExecuteFTP()
 
 Set Wshell = CreateObject("WScript.Shell")
 Set objExcel = CreateObject("Excel.Application")
@@ -28,7 +28,7 @@ objFTPOutputFile.Write Now() & vbCrLf
 objFTPOutputFile.Close
 
 ' path to simple output log file
-simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\simple3.log" ' Can remove since we have now testlogFileName
+' simplelogFile = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\simple3.log" ' Can remove since we have now testlogFileName
 
 
 '''''''''''''''''''''''''''''''''''''''
@@ -65,6 +65,7 @@ End If
 
 
 ' Extract all data from ITEMin
+file_left = Trim(objExcel.Cells(intRow, 1).Value)
 file_name = Trim(objExcel.Cells(intRow, 9).Value)
 ftp_server = Trim(objExcel.Cells(intRow, 15).Value)
 If ftp_server = "" Then
@@ -236,7 +237,7 @@ objExcel.Quit
 ' Below are purely for Logging purpose
 ' take a look at the log file and check for errors
 ' open the simple log file for writing
-Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
+' Set objSimpleFile = objFTPFSO.CreateTextFile(simplelogFile, True)
 
 ' read the full log file for error and add the line from this log to the simple log
 Set objLogFile = objFTPOutput.OpenTextFile(logFile)
