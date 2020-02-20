@@ -69,13 +69,9 @@ If objExcel.Cells(intRow, 1).Font.Color = RGB(255, 0, 0) Then
     objFTPOutputFile.Write "***Now processing: " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ") - " & Trim(objExcel.Cells(intRow, 21).Value) & " (FAIL)" & vbCrLf & _
                            "                 Error: Failed due to Invalid Record (Red-Font)" & vbCrLf
     objFTPOutputFile.Close
-    
-    
-    GoTo NextIteration
-    
-    
+        
+    GoTo NextIteration    
 End If
-
 
 ' Extract all data from ITEMin
 file_left = Trim(objExcel.Cells(intRow, 1).Value)
@@ -92,7 +88,6 @@ ftpPort = Trim(objExcel.Cells(intRow, 18).Value)
 upload_path = Trim(objExcel.Cells(intRow, 19).Value & objExcel.Cells(intRow, 9).Value)
 server_path = Trim(objExcel.Cells(intRow, 20).Value)
 protocol = Trim(objExcel.Cells(intRow, 21).Value)
-
 
 ' if the clients protocol is ftps, sftp, or standard we have to
 ' build a different ftpcmd.dat file
@@ -174,25 +169,11 @@ Else
 End If
 
 '''''''''''''''''''''''''''
-' !!! TESTING for FTP!
 '
-
-''''' Since objFTPOutputFile was closed earlier, we need to open the logFile again
-''''''''''''''' Log Test
 Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
 objFTPOutputFile.Write "***Now processing: " & objExcel.Cells(intRow, 1).Value & " (Row " & intRow & ") - " & Trim(objExcel.Cells(intRow, 21).Value) & vbCrLf
 objFTPOutputFile.Close
 
-
-' !!! TESTING section ending...
-'''''''''''''''''''''''''''''''''''''''''''''
-' Call Shell("C:\Users\ekim\Desktop\Projects\hello\WinSCP.com /ini=nul /script=C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\ftpcmd.dat")
-  'Call Shell("C:\Users\ekim\Desktop\Projects\hello\WinSCP.com /ini=nul /command ""open wefjwf"" ")
- 
- 'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com")
-
-'C:\Users\ekim\AppData\Local\WinSCP.com
-' if the server name is blank, do not ftp the file
 If Skip = "N" Then
     
 ' Just initialized with temp value for us to check response/return value from FTP
@@ -213,7 +194,6 @@ gotFTPRespond = False
         FTPS = Wshell.Run("C:/Users/ekim/Desktop/Projects/hello/WinSCP.com /script=" & datFile & " /log=" & logFile, 0, True)  ' Good
         gotFTPRespond = True
     ElseIf ftp_mode = "SFTP" Then
-        'SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ /log=""" & logFile & """", 1, True)
         SFTP = Wshell.Run("C:Users/ekim/Desktop/Projects/hello/WinSCP.com /script=""" & datFile & """ & /log=""" & logFile & """ ", 0, True)
         gotFTPRespond = True
     End If
@@ -237,9 +217,6 @@ objFTPOutputFile.Close
 
 NextIteration:
 
-' Onto the next record in ITEMin
-
-'Set objFTPOutputFile = objFTPOutput.CreateTextFile(logFile, True)
 Set objFTPOutputFile = objFTPOutput.OpenTextFile(logFile, 8, -2)
 objFTPOutputFile.Write vbCrLf
 objFTPOutputFile.Close

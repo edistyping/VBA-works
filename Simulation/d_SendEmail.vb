@@ -1,7 +1,6 @@
 Sub d_SendEmail()
 ' Process 4, Send Email
     
-'
 Set objExcel = CreateObject("Excel.Application")
 
 ' path to the excel file
@@ -21,7 +20,6 @@ logFileName = "C:\Users\ekim\Desktop\Projects\hello\Simulation\Logs\logFile4.log
 Set logFile = objOutput.CreateTextFile(logFileName, True)
 logFile.Write "Process 4: Sending a File via Email - Datetime babyyy: " & Now() & vbCrLf & _
               "-------------------------------------------------------------" & vbCrLf
-
       
 ' Declaration of variables to use for this process
 Dim file_left As String ' Includes Directory
@@ -92,7 +90,6 @@ If hasAttachment = True Then
             .Subject = em_subj
             .htmlBody = xMailBody
             .attachments.Add (em_attach1)
-    '        .attachments.Add ("\\viper\data\Sales\Public\CPFR\Alteryx\POSReportsSQL\Outputs\FinalOutputs\" & SatDay & "\POSWeeklyUnitsPerCustomer_Thru" & SatDay & "_w_AZCC_Dummy_Thru_" & AZCCDay & ".xlsx")
             .Send   'or use .Send
     End With
 ElseIf hasAttachment = False Then
@@ -102,8 +99,7 @@ ElseIf hasAttachment = False Then
             .BCC = em_bcc
             .Subject = em_subj
             .htmlBody = xMailBody
-            '.attachments.Add (em_attach1)
-    '        .attachments.Add ("\\viper\data\Sales\Public\CPFR\Alteryx\POSReportsSQL\Outputs\FinalOutputs\" & SatDay & "\POSWeeklyUnitsPerCustomer_Thru" & SatDay & "_w_AZCC_Dummy_Thru_" & AZCCDay & ".xlsx")
+
             .Send   'or use .Send
                         
     End With
@@ -116,34 +112,6 @@ intRow = intRow + 1
 
 Loop
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-'' Create Another loop to check emails were sent in your Outlook 'Sent' Folder
-'' start at the second row, ie, not the column header
-'' Check each record from the ITEMin.xlsx until it finds a blank row
-'Dim intRow2 As Integer
-'intRow2 = 2
-'Do Until objExcel.Cells(intRow2, 1).Value = ""
-'
-'' Test
-'Set xOutApp = CreateObject("Outlook.Application")
-'Set xOutMail = xOutApp.CreateItem(0)
-'
-'' Fetch Email data from ITEMin.xlsx
-'send_to = Trim(objExcel.Cells(intRow2, 1).Value)
-'em_to = Trim(objExcel.Cells(intRow2, 2).Value)
-'em_cc = Trim(objExcel.Cells(intRow2, 3).Value)
-'em_bcc = Trim(objExcel.Cells(intRow2, 4).Value)
-'em_subj = Trim(objExcel.Cells(intRow2, 5).Value)
-'xMailBody = Trim(objExcel.Cells(intRow2, 6).Value) ' Email Body
-'em_attach1 = Trim(objExcel.Cells(intRow2, 7).Value) ' C:\Users\ekim\Desktop\Projects\hello\ftpTestFiles\TestWord_2019-02-37.docx
-'em_attach2 = Trim(objExcel.Cells(intRow2, 8).Value)
-'
-'intRow2 = intRow2 + 1
-'Loop
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
 
 ' Log Footer
 logFile.Write "-------------------------------------------------------------" & vbCrLf
