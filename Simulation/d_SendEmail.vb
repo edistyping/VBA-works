@@ -22,7 +22,7 @@ logFile.Write "Process 4: Sending a File via Email - Datetime babyyy: " & Now() 
               "-------------------------------------------------------------" & vbCrLf
       
 ' Declaration of variables to use for this process
-Dim file_left As String ' Includes Directory!
+Dim file_left As String ' Includes Directory
 Dim em_to As String
 Dim em_cc As String
 Dim em_bcc As String
